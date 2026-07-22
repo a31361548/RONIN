@@ -1,0 +1,12 @@
+<svg width="640" height="184" viewBox="0 0 640 184" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">日隅</title>
+  <desc id="desc">日隅個人記事與提醒工作區標誌</desc>
+  <rect x="12" y="12" width="160" height="160" rx="44" fill="#E98A7A"/>
+  <circle cx="140" cy="46" r="12" fill="#A9B9A3"/>
+  <path d="M58 42H106L126 62V142H58V42Z" fill="#FFF9F4" stroke="#2E2A28" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M106 42V62H126" fill="#F3ECE5" stroke="#2E2A28" stroke-width="6" stroke-linejoin="round"/>
+  <circle cx="78" cy="74" r="7" fill="#E98A7A"/>
+  <path d="M78 96H108M78 112H108M78 128H98" stroke="#776E68" stroke-width="6" stroke-linecap="round"/>
+  <text x="208" y="99" fill="#2E2A28" font-family="Quicksand, Noto Sans TC, sans-serif" font-size="64" font-weight="700" letter-spacing="8">日隅</text>
+  <text x="214" y="136" fill="#776E68" font-family="Quicksand, Noto Sans TC, sans-serif" font-size="18" font-weight="600" letter-spacing="3">個人記事與提醒</text>
+</svg>

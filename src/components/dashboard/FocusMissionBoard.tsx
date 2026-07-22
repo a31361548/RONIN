@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useCallback, useRef } from 'react'
+import { useMemo, useCallback, useRef, type ReactElement } from 'react'
 import Link from 'next/link'
 import type { Todo } from '@/types/todo'
 import { TechButton } from '@/components/ui/TechButton'
@@ -19,7 +19,7 @@ type FocusMissionBoardProps = {
   completedCount?: number
 }
 
-export function FocusMissionBoard({ todos, user, completedCount = 0 }: FocusMissionBoardProps) {
+export function FocusMissionBoard({ todos, user, completedCount = 0 }: FocusMissionBoardProps): ReactElement {
   const { toggleView } = useAuxiliary()
   const autoStatusRef = useRef<Set<string>>(new Set())
 
@@ -52,7 +52,7 @@ export function FocusMissionBoard({ todos, user, completedCount = 0 }: FocusMiss
             任務中樞
           </h1>
           <p className="font-tech text-xs text-samurai-text/50 tracking-[0.3em]">
-            操作者：{user.name || '未知'} // 代幣：{user.coins ?? 0}
+            操作者：{user.name || '未知'} ／／ 代幣：{user.coins ?? 0}
           </p>
         </div>
         <div className="flex gap-2">

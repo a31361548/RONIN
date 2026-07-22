@@ -1,34 +1,23 @@
-import { getServerSession } from 'next-auth'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { authOptions } from '@/lib/authOptions'
-import { HoloWindow } from '@/components/ui/HoloWindow'
-import { TechButton } from '@/components/ui/TechButton'
+import { redirect } from 'next/navigation'
+import { getAuthenticatedUser } from '@/lib/currentUser'
 import MembersClient from './ui/MembersClient'
 
 export default async function AdminMembersPage(): Promise<React.ReactElement> {
-  const session = await getServerSession(authOptions)
-  if (!session?.user || session.user.role !== 'ADMIN') redirect('/dashboard')
+  const admin = await getAuthenticatedUser({ requireAdmin: true })
+  if (!admin) redirect('/dashboard')
+
   return (
-    <HoloWindow
-      title="指揮成員名冊"
-      className="h-full"
-      controls={
-        <Link href="/dashboard">
-          <TechButton variant="ghost" className="!px-4 !py-2 text-[11px]">
-            返回儀表板
-          </TechButton>
-        </Link>
-      }
-    >
-      <div className="space-y-8">
-        <section className="rounded-[34px] border border-white/10 bg-black/25 p-6 text-white shadow-[0_25px_70px_rgba(0,0,0,0.35)]">
-          <p className="text-xs font-tech uppercase tracking-[0.4em] text-white/60">權限提醒</p>
-          <h1 className="font-pixel text-pixel-xl uppercase tracking-[0.35em]">成員管理</h1>
-          <p className="text-sm text-white/70">僅限管理員新增或編輯帳號，所有變更會立即同步。</p>
-        </section>
-        <MembersClient />
-      </div>
-    </HoloWindow>
+    <div className="space-y-6" data-testid="members-page">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold tracking-[0.14em] text-[#c96b61]">只給管理員的工作區</p>
+          <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2e2a28] sm:text-5xl">會員管理</h1>
+          <p className="mt-3 text-base leading-7 text-[#776e68]">建立帳號、調整會員資料，或在忘記密碼時協助重設。</p>
+        </div>
+        <Link href="/dashboard" className="inline-flex items-center justify-center rounded-2xl border border-[#eaded4] bg-[#fffdfa] px-4 py-3 text-sm font-bold text-[#a85b4e] transition hover:border-[#d9a59a] hover:bg-[#fff1eb]">返回首頁</Link>
+      </header>
+      <MembersClient />
+    </div>
   )
 }

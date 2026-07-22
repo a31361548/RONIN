@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Background: Void Black (Rounded) -->
-  <rect width="100" height="100" rx="20" fill="#09090B" />
-  
-  <!-- Icon: Crossed Swords (Samurai Red) -->
-  <text x="50" y="55" font-family="system-ui, sans-serif" font-size="70" text-anchor="middle" dominant-baseline="middle" fill="#F43F5E">⚔</text>
-</svg>
