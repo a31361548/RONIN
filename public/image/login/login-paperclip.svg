@@ -1,0 +1,13 @@
+<svg width="160" height="220" viewBox="0 0 160 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">迴紋針</title>
+  <desc id="desc">金色金屬迴紋針</desc>
+  <defs>
+    <filter id="clip-shadow" x="8" y="4" width="144" height="212" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#70523E" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <g id="paperclip" filter="url(#clip-shadow)">
+    <path d="M86 30C112 30 130 49 130 75V151C130 179 109 198 82 198C53 198 32 177 32 149V66C32 48 45 34 62 34C80 34 94 47 94 66V146C94 155 88 161 80 161C72 161 66 155 66 146V76" stroke="#AD7928" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M86 30C112 30 130 49 130 75" stroke="#F3CF75" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

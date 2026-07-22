@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
+import { LoginIllustration } from '@/components/LoginIllustration'
 import { LoginView } from '@/components/LoginView'
 import { authOptions } from '@/lib/authOptions'
 
@@ -17,33 +18,37 @@ export default async function Home() {
 
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center">
         <div className="grid w-full gap-12 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-center lg:gap-24">
-          <section className="max-w-xl">
-            <div className="mb-8 flex items-center gap-5">
-              <Image
-                src="/image/brand/riyu-mark.png"
-                alt="日隅 Logo"
-                width={104}
-                height={104}
-                priority
-                className="h-24 w-24 object-contain sm:h-28 sm:w-28"
-              />
-              <div>
-                <p className="mb-1 text-sm font-semibold tracking-[0.2em] text-[#8d7f76]">個人記事與提醒</p>
-                <h1 className="text-4xl font-bold tracking-[0.12em] text-[#2e2a28] sm:text-5xl">日隅</h1>
+          <section className="relative max-w-xl lg:min-h-[530px]">
+            <LoginIllustration />
+
+            <div className="relative z-10">
+              <div className="mb-8 flex items-center gap-5">
+                <Image
+                  src="/image/brand/riyu-mark.png"
+                  alt="日隅 Logo"
+                  width={104}
+                  height={104}
+                  priority
+                  className="h-24 w-24 object-contain sm:h-28 sm:w-28"
+                />
+                <div>
+                  <p className="mb-1 text-sm font-semibold tracking-[0.2em] text-[#8d7f76]">個人記事與提醒</p>
+                  <h1 className="text-4xl font-bold tracking-[0.12em] text-[#2e2a28] sm:text-5xl">日隅</h1>
+                </div>
               </div>
-            </div>
 
-            <p className="max-w-lg text-3xl font-bold leading-tight tracking-tight text-[#2e2a28] sm:text-5xl">
-              把今天的事情，放在一個剛剛好的角落。
-            </p>
-            <p className="mt-6 max-w-md text-base leading-8 text-[#776e68] sm:text-lg">
-              日隅是你的私人記事與提醒工作區。記下想法、整理待辦，讓每一天都更容易開始。
-            </p>
+              <p className="max-w-lg text-3xl font-bold leading-tight tracking-tight text-[#2e2a28] sm:text-5xl">
+                把今天的事情，放在一個剛剛好的角落。
+              </p>
+              <p className="mt-6 max-w-md text-base leading-8 text-[#776e68] sm:text-lg">
+                日隅是你的私人記事與提醒工作區。記下想法、整理待辦，讓每一天都更容易開始。
+              </p>
 
-            <div className="mt-10 flex flex-wrap gap-3 text-sm font-semibold text-[#695e57]">
-              <span className="rounded-full bg-[#f3e7dc] px-4 py-2">記下想法</span>
-              <span className="rounded-full bg-[#e5efe2] px-4 py-2">安排今天</span>
-              <span className="rounded-full bg-[#e5eef3] px-4 py-2">保留自己的節奏</span>
+              <div className="mt-10 flex flex-wrap gap-3 text-sm font-semibold text-[#695e57]">
+                <span className="rounded-full bg-[#f3e7dc] px-4 py-2">記下想法</span>
+                <span className="rounded-full bg-[#e5efe2] px-4 py-2">安排今天</span>
+                <span className="rounded-full bg-[#e5eef3] px-4 py-2">保留自己的節奏</span>
+              </div>
             </div>
           </section>
 

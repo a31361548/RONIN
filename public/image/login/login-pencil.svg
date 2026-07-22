@@ -1,0 +1,18 @@
+<svg width="480" height="92" viewBox="0 0 480 92" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">木鉛筆</title>
+  <desc id="desc">一支暖黃色木鉛筆</desc>
+  <defs>
+    <filter id="pencil-shadow" x="0" y="0" width="480" height="92" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#70523E" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <g id="pencil" transform="rotate(-7 240 46)" filter="url(#pencil-shadow)">
+    <path id="pencil-wood" d="M18 46L66 18V74L18 46Z" fill="#D9A35D"/>
+    <path id="pencil-graphite" d="M18 46L35 36V56L18 46Z" fill="#2E2A28"/>
+    <rect id="pencil-body" x="62" y="18" width="336" height="56" rx="12" fill="#E6B76C"/>
+    <path d="M82 22V70M106 22V70" stroke="#F6D895" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+    <rect id="pencil-ferrule" x="392" y="18" width="38" height="56" fill="#C3C9C3"/>
+    <path d="M403 19V73M418 19V73" stroke="#A6AEA8" stroke-width="4"/>
+    <path id="pencil-eraser" d="M430 18H450C457 18 462 24 462 31V61C462 68 457 74 450 74H430V18Z" fill="#E98A7A"/>
+  </g>
+</svg>

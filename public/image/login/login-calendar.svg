@@ -1,0 +1,27 @@
+<svg width="340" height="330" viewBox="0 0 340 330" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">月曆卡</title>
+  <desc id="desc">一張以珊瑚色標示日期的手作月曆卡</desc>
+  <defs>
+    <filter id="calendar-shadow" x="4" y="4" width="332" height="322" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#70523E" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+  <g id="calendar-card" filter="url(#calendar-shadow)">
+    <rect x="18" y="16" width="304" height="294" rx="26" fill="#FFF9F4"/>
+    <path d="M18 78H322" stroke="#EADDD3" stroke-width="2"/>
+    <text x="44" y="58" fill="#D97568" font-family="Noto Sans TC, sans-serif" font-size="26" font-weight="700">7月</text>
+    <g id="calendar-week" fill="#776E68" font-family="Noto Sans TC, sans-serif" font-size="12" font-weight="600">
+      <text x="44" y="108">日</text><text x="87" y="108">一</text><text x="130" y="108">二</text><text x="173" y="108">三</text><text x="216" y="108">四</text><text x="259" y="108">五</text><text x="302" y="108">六</text>
+    </g>
+    <g id="calendar-days" fill="#776E68" font-family="Noto Sans TC, sans-serif" font-size="13" text-anchor="middle">
+      <text x="44" y="148">6</text><text x="87" y="148">7</text><text x="130" y="148">8</text><text x="173" y="148">9</text><text x="216" y="148">10</text><text x="259" y="148">11</text><text x="302" y="148">12</text>
+      <text x="44" y="188">13</text><text x="87" y="188">14</text><text x="130" y="188">15</text><text x="173" y="188">16</text><text x="216" y="188">17</text><text x="259" y="188">18</text><text x="302" y="188">19</text>
+      <text x="44" y="228">20</text><text x="87" y="228">21</text><text x="130" y="228">23</text><text x="173" y="228">24</text><text x="216" y="228">25</text><text x="259" y="228">26</text><text x="302" y="228">27</text>
+      <text x="44" y="268">28</text><text x="87" y="268">29</text><text x="130" y="268">30</text><text x="173" y="268">31</text>
+    </g>
+    <g id="calendar-selected-day">
+      <circle cx="130" cy="188" r="22" fill="#E98A7A"/>
+      <text x="130" y="193" fill="#FFF9F4" font-family="Noto Sans TC, sans-serif" font-size="13" font-weight="700" text-anchor="middle">22</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,6 @@
+<svg width="230" height="110" viewBox="0 0 230 110" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">紙膠帶</title>
+  <desc id="desc">珊瑚色半透明紙膠帶</desc>
+  <path id="washi-tape" d="M18 18L210 24L218 92L12 86L18 18Z" fill="#E98A7A" fill-opacity="0.76"/>
+  <path d="M25 30L205 35M20 70L213 76" stroke="#F8C1B7" stroke-opacity="0.45" stroke-width="3" stroke-dasharray="8 8"/>
+</svg>
