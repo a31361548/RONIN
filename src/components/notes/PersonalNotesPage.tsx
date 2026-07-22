@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, type FormEvent, type ReactElement } from 'react'
+import { PersonalConfirmDialog } from '@/components/ui/PersonalConfirmDialog'
 import { PersonalRichTextEditor } from '@/components/ui/PersonalRichTextEditor'
 import { PersonalTagPicker } from '@/components/ui/PersonalTagPicker'
 import { PersonalToast, type PersonalToastState } from '@/components/ui/PersonalToast'
@@ -34,6 +35,7 @@ export function PersonalNotesPage({ initialNotes }: PersonalNotesProps): ReactEl
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState<PersonalToastState | null>(null)
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -98,9 +100,13 @@ export function PersonalNotesPage({ initialNotes }: PersonalNotesProps): ReactEl
     }
   }
 
+  const requestDelete = () => {
+    if (!selectedNoteId) return
+    setConfirmDeleteOpen(true)
+  }
+
   const handleDelete = async () => {
     if (!selectedNoteId) return
-    if (!window.confirm('刪除前請確認：確定要刪除這篇筆記嗎？此動作無法復原。')) return
     setLoading(true)
     try {
       const response = await fetch(`/api/notes/${selectedNoteId}`, { method: 'DELETE' })
@@ -117,6 +123,7 @@ export function PersonalNotesPage({ initialNotes }: PersonalNotesProps): ReactEl
       setToast({ tone: 'error', message: error instanceof Error ? error.message : '刪除失敗' })
     } finally {
       setLoading(false)
+      setConfirmDeleteOpen(false)
     }
   }
 
@@ -130,8 +137,9 @@ export function PersonalNotesPage({ initialNotes }: PersonalNotesProps): ReactEl
     <div className="space-y-6" data-testid="notes-page">
       <header className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="text-sm font-semibold tracking-[0.14em] text-[#c96b61]">把想法留在一個找得到的地方</p><h1 className="mt-2 text-4xl font-bold tracking-tight text-[#2e2a28] sm:text-5xl">筆記</h1><p className="mt-3 text-base leading-7 text-[#776e68]">不必寫得完整，先把現在想到的留下來。</p></div><button type="button" onClick={openNewNote} className="self-start rounded-2xl bg-[#e98a7a] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#d97568] sm:self-auto">新增筆記</button></header>
       <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]"><aside className="rounded-[2rem] border border-[#eaded4] bg-[#fffdfa] p-4 shadow-[0_16px_44px_rgba(112,82,62,0.08)]"><div className="flex items-center justify-between px-2 pb-3"><p className="text-sm font-bold text-[#2e2a28]">最近筆記</p><span className="text-xs font-semibold text-[#a79b91]">{filteredNotes.length}/{notes.length} 篇</span></div><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜尋標題或內容" className="mb-3 h-10 w-full rounded-xl border border-[#e5d9cf] bg-[#fffaf6] px-3 text-xs text-[#4a413c] outline-none focus:border-[#d97568] focus:ring-4 focus:ring-[#e98a7a]/15"/><div className="space-y-2">{filteredNotes.length > 0 ? filteredNotes.map((note) => <button key={note.id} type="button" onClick={() => openNote(note)} className={`w-full rounded-2xl px-3 py-3 text-left transition ${selectedNoteId === note.id ? 'bg-[#f6e5d9]' : 'hover:bg-[#faf3ed]'}`}><p className={`truncate text-sm font-bold ${selectedNoteId === note.id ? 'text-[#a85b4e]' : 'text-[#4a413c]'}`}>{note.title}</p><p className="mt-1 text-xs text-[#a79b91]">{noteDate(note.updatedAt)}</p><NoteTagChips tagIds={note.tagIds} tags={tags}/></button>) : <p className="rounded-2xl bg-[#faf3ed] px-4 py-6 text-center text-sm text-[#9a8c83]">{search ? '找不到符合的筆記' : '還沒有筆記'}</p>}</div></aside>
-        <section className="rounded-[2rem] border border-[#eaded4] bg-[#fffdfa] p-5 shadow-[0_16px_44px_rgba(112,82,62,0.08)] sm:p-7"><div className="flex items-center justify-between gap-4"><div><p className="text-sm font-bold text-[#2e2a28]">{selectedNoteId ? '編輯筆記' : '新增筆記'}</p><p className="mt-1 text-sm text-[#8d7f76]">內容會儲存在你的私人工作區。</p></div>{selectedNoteId && <button type="button" onClick={() => void handleDelete()} disabled={loading} className="text-sm font-bold text-[#a85b4e] hover:text-[#7d3e37] disabled:opacity-50">刪除</button>}</div><form onSubmit={handleSave} className="mt-6 space-y-4"><label className="block text-sm font-semibold text-[#695e57]">標題<input data-testid="note-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="今天想記住什麼？" className="mt-2 h-14 w-full rounded-2xl border border-[#e5d9cf] bg-[#fffdfa] px-4 text-xl font-bold text-[#2e2a28] outline-none placeholder:text-[#c5b8ae] focus:border-[#d97568] focus:ring-4 focus:ring-[#e98a7a]/15" /></label><div><p className="text-sm font-semibold text-[#695e57]">內容</p><div className="mt-2"><PersonalRichTextEditor content={content} onChange={setContent}/></div></div><div><p className="text-sm font-semibold text-[#695e57]">標籤</p><PersonalTagPicker value={tagIds} onChange={setTagIds}/></div><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-[#a79b91]">支援標題、粗體、清單、引用與復原。</p><button type="submit" disabled={saving} className="rounded-2xl bg-[#e98a7a] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#d97568] disabled:cursor-wait disabled:opacity-60">{saving ? '儲存中⋯' : '儲存筆記'}</button></div></form></section></div>
+        <section className="rounded-[2rem] border border-[#eaded4] bg-[#fffdfa] p-5 shadow-[0_16px_44px_rgba(112,82,62,0.08)] sm:p-7"><div className="flex items-center justify-between gap-4"><div><p className="text-sm font-bold text-[#2e2a28]">{selectedNoteId ? '編輯筆記' : '新增筆記'}</p><p className="mt-1 text-sm text-[#8d7f76]">內容會儲存在你的私人工作區。</p></div>{selectedNoteId && <button type="button" onClick={requestDelete} disabled={loading} className="text-sm font-bold text-[#a85b4e] hover:text-[#7d3e37] disabled:opacity-50">刪除</button>}</div><form onSubmit={handleSave} className="mt-6 space-y-4"><label className="block text-sm font-semibold text-[#695e57]">標題<input data-testid="note-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="今天想記住什麼？" className="mt-2 h-14 w-full rounded-2xl border border-[#e5d9cf] bg-[#fffdfa] px-4 text-xl font-bold text-[#2e2a28] outline-none placeholder:text-[#c5b8ae] focus:border-[#d97568] focus:ring-4 focus:ring-[#e98a7a]/15" /></label><div><p className="text-sm font-semibold text-[#695e57]">內容</p><div className="mt-2"><PersonalRichTextEditor content={content} onChange={setContent}/></div></div><div><p className="text-sm font-semibold text-[#695e57]">標籤</p><PersonalTagPicker value={tagIds} onChange={setTagIds}/></div><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-[#a79b91]">支援標題、粗體、清單、引用與復原。</p><button type="submit" disabled={saving} className="rounded-2xl bg-[#e98a7a] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#d97568] disabled:cursor-wait disabled:opacity-60">{saving ? '儲存中⋯' : '儲存筆記'}</button></div></form></section></div>
       <PersonalToast toast={toast} onDismiss={() => setToast(null)} />
+      <PersonalConfirmDialog open={confirmDeleteOpen} title="刪除這篇筆記？" description="刪除後筆記內容與標籤都會永久移除，這個動作無法復原。" busy={loading} onCancel={() => setConfirmDeleteOpen(false)} onConfirm={() => void handleDelete()} />
     </div>
   )
 }
