@@ -19,6 +19,20 @@ enum TodoStatus {
   FAILED
 }
 
+enum TodoPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum RecurrenceType {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+  CUSTOM
+}
+
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
@@ -38,6 +52,7 @@ model User {
   notes     Note[]
   checkIns  CheckIn[]
   todos     Todo[]
+  tags      Tag[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -46,6 +61,7 @@ model Note {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   content   String   // HTML content from Tiptap
+  tagIds    String[] @default([])
   userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
@@ -81,14 +97,31 @@ model Item {
 }
 
 model Todo {
-  id          String      @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String?
-  status      TodoStatus  @default(NOT_STARTED)
-  startAt     DateTime    @default(now())
-  endAt       DateTime
-  userId      String      @db.ObjectId
-  user        User        @relation(fields: [userId], references: [id])
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  title             String
+  description       String?
+  status            TodoStatus     @default(NOT_STARTED)
+  priority          TodoPriority   @default(MEDIUM)
+  recurrence        RecurrenceType @default(NONE)
+  recurrenceInterval Int           @default(1)
+  recurrenceEndAt   DateTime?
+  tagIds            String[]       @default([])
+  startAt           DateTime       @default(now())
+  endAt             DateTime
+  userId            String         @db.ObjectId
+  user              User           @relation(fields: [userId], references: [id])
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model Tag {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  color     String   @default("#E98A7A")
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
 }

@@ -1,0 +1,10 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">日隅 Logo</title>
+  <desc id="desc">珊瑚色圓角方形中，一張帶有折角的記事紙與一個小圓點</desc>
+  <rect width="256" height="256" rx="64" fill="#E98A7A"/>
+  <circle cx="194" cy="54" r="18" fill="#A9B9A3"/>
+  <path d="M74 48H150L182 80V208H74V48Z" fill="#FFF9F4" stroke="#2E2A28" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M150 48V80H182" fill="#F3ECE5" stroke="#2E2A28" stroke-width="8" stroke-linejoin="round"/>
+  <circle cx="104" cy="98" r="10" fill="#E98A7A"/>
+  <path d="M104 128H154M104 154H154M104 180H138" stroke="#776E68" stroke-width="8" stroke-linecap="round"/>
+</svg>

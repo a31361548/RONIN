@@ -1,0 +1,19 @@
+body {
+  background: #fff9f4 !important;
+  color: #2e2a28 !important;
+  font-family: 'Quicksand', 'Noto Sans TC', sans-serif !important;
+}
+
+body::before,
+body::after {
+  display: none !important;
+}
+
+::-webkit-scrollbar-track {
+  background: #fff9f4;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d8a69a;
+  border-radius: 999px;
+}
