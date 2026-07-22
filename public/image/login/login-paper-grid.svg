@@ -1,0 +1,18 @@
+<svg width="500" height="370" viewBox="0 0 500 370" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">方格紙</title>
+  <desc id="desc">帶有淡藍色方格線的奶油色記事紙</desc>
+  <defs>
+    <filter id="grid-shadow" x="4" y="4" width="492" height="362" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#70523E" flood-opacity="0.1"/>
+    </filter>
+    <pattern id="grid-pattern" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0H0V28" stroke="#B7D7E8" stroke-opacity="0.48" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <g id="paper-grid" filter="url(#grid-shadow)">
+    <path d="M24 18H476C483 18 488 23 488 30V340C488 347 483 352 476 352H24C17 352 12 347 12 340V30C12 23 17 18 24 18Z" fill="#FFF9F4"/>
+    <path d="M24 18H476C483 18 488 23 488 30V340C488 347 483 352 476 352H24C17 352 12 347 12 340V30C12 23 17 18 24 18Z" fill="url(#grid-pattern)"/>
+    <path id="paper-grid-coral-mark" d="M74 272C112 246 148 286 184 258" stroke="#E98A7A" stroke-width="9" stroke-linecap="round"/>
+    <path id="paper-grid-pencil-mark" d="M80 112C140 92 198 130 260 108" stroke="#776E68" stroke-opacity="0.45" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>

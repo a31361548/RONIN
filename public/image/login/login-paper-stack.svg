@@ -1,0 +1,17 @@
+<svg width="560" height="450" viewBox="0 0 560 450" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">記事紙張堆</title>
+  <desc id="desc">薄荷綠、晴空藍與奶油色紙張堆疊的記事卡</desc>
+  <defs>
+    <filter id="paper-shadow" x="20" y="18" width="520" height="420" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#70523E" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+  <g id="paper-stack" filter="url(#paper-shadow)">
+    <path id="paper-stack-mint" d="M82 82L456 54L492 356L106 390L82 82Z" fill="#A9B9A3" transform="rotate(-7 286 222)"/>
+    <path id="paper-stack-blue" d="M100 56L474 84L430 390L66 350L100 56Z" fill="#B7D7E8" transform="rotate(7 270 220)"/>
+    <path id="paper-stack-front" d="M80 66L420 66L458 104V352L420 390H80V66Z" fill="#FFF9F4" stroke="#2E2A28" stroke-opacity="0.16" stroke-width="3" stroke-linejoin="round"/>
+    <path id="paper-stack-fold" d="M420 66V104H458" fill="#F3ECE5" stroke="#2E2A28" stroke-opacity="0.16" stroke-width="3" stroke-linejoin="round"/>
+    <path id="paper-stack-coral-line" d="M130 274H332" stroke="#E98A7A" stroke-width="8" stroke-linecap="round"/>
+    <path id="paper-stack-writing" d="M130 150H364M130 192H328M130 234H282" stroke="#776E68" stroke-opacity="0.42" stroke-width="7" stroke-linecap="round"/>
+  </g>
+</svg>

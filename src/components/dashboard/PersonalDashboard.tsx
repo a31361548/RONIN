@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type ReactNode } from 'react'
@@ -191,11 +192,13 @@ function SortableWidget({ widget, editing, children, onToggleVisibility, onResiz
   }
 
   return (
-    <div ref={setNodeRef} style={style} className={`relative min-w-0 ${widgetSpan(widget.size)} ${editing ? 'touch-none' : ''} ${isDragging ? 'z-20' : ''}`} data-widget-id={widget.id} {...(editing ? attributes : {})} {...(editing ? listeners : {})} aria-label={editing ? `拖曳排序${widget.label}` : undefined}>
+    <motion.div ref={setNodeRef} style={style} layout transition={{ layout: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }} className={`relative min-w-0 ${widgetSpan(widget.size)} ${editing ? 'touch-none' : ''} ${isDragging ? 'z-20' : ''}`} data-widget-id={widget.id} {...(editing ? attributes : {})} {...(editing ? listeners : {})} aria-label={editing ? `拖曳排序${widget.label}` : undefined}>
       {editing && <div className="mb-2 flex min-w-0 items-center gap-2 rounded-2xl border border-[#eaded4] bg-[#fffaf6] px-3 py-2 text-xs text-[#9a8c83] shadow-[0_6px_16px_rgba(112,82,62,0.05)]"><span className="shrink-0 text-[#b7655a]"><GripIcon /></span><span className="min-w-0 truncate font-bold text-[#4a413c]">{widget.label}</span><span className="shrink-0 rounded-xl bg-[#f3e7dc] px-2 py-1 font-semibold text-[#9a6a5f]">{sizeLabel(widget.size)}</span><span className="shrink-0 rounded-xl bg-[#f8efe8] px-2 py-1 font-semibold text-[#9a6a5f]">{heightLabel(widget.height)}</span><button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onToggleVisibility(widget.id) }} className="ml-auto shrink-0 rounded-xl px-2 py-1 font-bold text-[#a85b4e] transition hover:bg-[#fff0eb]">隱藏</button></div>}
-      <div className={editing ? 'rounded-[2.15rem] ring-2 ring-[#e8c5bb] ring-offset-2 ring-offset-[#fcf7f2]' : ''}>{children}</div>
-      {editing && <button type="button" data-resize-handle="true" onPointerDown={(event) => onResizeStart(event, widget.id, widget.size, widget.height)} onClick={(event) => event.stopPropagation()} className="absolute bottom-3 right-3 z-10 hidden h-9 w-9 cursor-se-resize items-center justify-center rounded-xl border border-[#eaded4] bg-[#fffdfa] text-[#b7655a] shadow-sm transition hover:border-[#d9a59a] hover:bg-[#fff0eb] lg:flex" aria-label={`拖曳調整${widget.label}大小`} title="拖曳調整寬度與高度"><ResizeIcon /></button>}
-    </div>
+      <div className={`relative min-w-0 ${editing ? 'rounded-[2.15rem] ring-2 ring-[#e8c5bb] ring-offset-2 ring-offset-[#fcf7f2]' : ''}`}>
+        {children}
+        {editing && <button type="button" data-resize-handle="true" onPointerDown={(event) => onResizeStart(event, widget.id, widget.size, widget.height)} onClick={(event) => event.stopPropagation()} className="absolute bottom-3 right-3 z-20 hidden h-9 w-9 cursor-se-resize items-center justify-center rounded-xl border border-[#eaded4] bg-[#fffdfa] text-[#b7655a] shadow-sm transition hover:border-[#d9a59a] hover:bg-[#fff0eb] lg:flex" aria-label={`拖曳調整${widget.label}大小`} title="拖曳調整寬度與高度"><ResizeIcon /></button>}
+      </div>
+    </motion.div>
   )
 }
 
@@ -207,7 +210,7 @@ type DashboardCardProps = {
 }
 
 function DashboardCard({ children, className = '', allowOverflow = false, fixedHeight = 'auto' }: DashboardCardProps): ReactElement {
-  const overflowClass = allowOverflow ? 'overflow-visible' : fixedHeight === 'auto' ? 'overflow-hidden' : 'overflow-auto'
+  const overflowClass = allowOverflow ? 'overflow-visible' : fixedHeight === 'auto' ? 'overflow-hidden' : 'dashboard-card-scroll overflow-y-auto overflow-x-hidden overscroll-contain'
   return <section className={`min-w-0 ${overflowClass} rounded-[2rem] border border-[#eaded4] bg-[#fffdfa] p-5 shadow-[0_16px_44px_rgba(112,82,62,0.08)] sm:p-7 ${className}`}>{children}</section>
 }
 
