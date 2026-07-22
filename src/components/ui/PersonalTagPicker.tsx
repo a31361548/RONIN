@@ -54,7 +54,7 @@ export function PersonalTagPicker({ value, onChange }: PersonalTagPickerProps): 
       <div className="flex flex-wrap gap-2">
         {tags.length > 0 ? tags.map((tag) => {
           const selected = value.includes(tag.id)
-          return <button key={tag.id} type="button" onClick={() => toggleTag(tag.id)} aria-pressed={selected} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${selected ? 'border-transparent text-white' : 'border-[#eaded4] bg-[#fffdfa] text-[#776e68] hover:border-[#d9a59a]'}`} style={selected ? { backgroundColor: tag.color } : undefined}>{tag.name}</button>
+          return <button key={tag.id} type="button" onClick={() => toggleTag(tag.id)} aria-pressed={selected} aria-label={`${selected ? '移除' : '加入'}標籤「${tag.name}」`} className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${selected ? 'border-transparent text-white' : 'border-[#eaded4] bg-[#fffdfa] text-[#776e68] hover:border-[#d9a59a]'}`} style={selected ? { backgroundColor: tag.color } : undefined}><span>{tag.name}</span>{selected && <span aria-hidden="true" className="text-sm font-normal leading-none">×</span>}</button>
         }) : <span className="text-xs text-[#a79b91]">還沒有標籤，可以直接建立。</span>}
       </div>
       <div className="mt-3 flex gap-2">
