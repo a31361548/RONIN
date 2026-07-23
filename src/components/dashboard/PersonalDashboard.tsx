@@ -109,12 +109,6 @@ function sizeLabel(size: WidgetSize): string {
   return '滿版'
 }
 
-function heightLabel(height: WidgetHeight): string {
-  if (height === 'compact') return '較矮'
-  if (height === 'tall') return '較高'
-  return '自適應'
-}
-
 function widgetHeightClass(height: WidgetHeight): string {
   if (height === 'compact') return 'lg:h-[9rem]'
   if (height === 'tall') return 'lg:h-[26rem]'
@@ -192,8 +186,8 @@ function SortableWidget({ widget, editing, children, onToggleVisibility, onResiz
   }
 
   return (
-    <motion.div ref={setNodeRef} style={style} layout transition={{ layout: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }} className={`relative min-w-0 ${widgetSpan(widget.size)} ${editing ? 'touch-none' : ''} ${isDragging ? 'z-20' : ''}`} data-widget-id={widget.id} {...(editing ? attributes : {})} {...(editing ? listeners : {})} aria-label={editing ? `拖曳排序${widget.label}` : undefined}>
-      {editing && <div className="mb-2 flex min-w-0 items-center gap-2 rounded-2xl border border-[#eaded4] bg-[#fffaf6] px-3 py-2 text-xs text-[#9a8c83] shadow-[0_6px_16px_rgba(112,82,62,0.05)]"><span className="shrink-0 text-[#b7655a]"><GripIcon /></span><span className="min-w-0 truncate font-bold text-[#4a413c]">{widget.label}</span><span className="shrink-0 rounded-xl bg-[#f3e7dc] px-2 py-1 font-semibold text-[#9a6a5f]">{sizeLabel(widget.size)}</span><span className="shrink-0 rounded-xl bg-[#f8efe8] px-2 py-1 font-semibold text-[#9a6a5f]">{heightLabel(widget.height)}</span><button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onToggleVisibility(widget.id) }} className="ml-auto shrink-0 rounded-xl px-2 py-1 font-bold text-[#a85b4e] transition hover:bg-[#fff0eb]">隱藏</button></div>}
+    <motion.div ref={setNodeRef} style={style} layout transition={{ layout: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }} className={`relative min-w-0 ${widgetSpan(widget.size)}  ${isDragging ? 'z-20' : ''}`} data-widget-id={widget.id}>
+      {editing && <div className="mb-2 flex min-w-0 items-center gap-2 rounded-2xl border border-[#eaded4] bg-[#fffaf6] px-3 py-2 text-xs text-[#9a8c83] shadow-[0_6px_16px_rgba(112,82,62,0.05)]"><button type="button" {...attributes} {...listeners} className="shrink-0 cursor-grab touch-none text-[#b7655a] active:cursor-grabbing" aria-label={`拖曳排序${widget.label}`}><GripIcon /></button><span className="min-w-0 truncate font-bold text-[#4a413c]">{widget.label}</span><button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onToggleVisibility(widget.id) }} className="ml-auto shrink-0 rounded-xl px-2 py-1 font-bold text-[#a85b4e] transition hover:bg-[#fff0eb]">隱藏</button></div>}
       <div className={`relative min-w-0 ${editing ? 'rounded-[2.15rem] ring-2 ring-[#e8c5bb] ring-offset-2 ring-offset-[#fcf7f2]' : ''}`}>
         {children}
         {editing && <button type="button" data-resize-handle="true" onPointerDown={(event) => onResizeStart(event, widget.id, widget.size, widget.height)} onClick={(event) => event.stopPropagation()} className="absolute bottom-3 right-3 z-20 hidden h-9 w-9 cursor-se-resize items-center justify-center rounded-xl border border-[#eaded4] bg-[#fffdfa] text-[#b7655a] shadow-sm transition hover:border-[#d9a59a] hover:bg-[#fff0eb] lg:flex" aria-label={`拖曳調整${widget.label}大小`} title="拖曳調整寬度與高度"><ResizeIcon /></button>}
@@ -210,7 +204,7 @@ type DashboardCardProps = {
 }
 
 function DashboardCard({ children, className = '', allowOverflow = false, fixedHeight = 'auto' }: DashboardCardProps): ReactElement {
-  const overflowClass = allowOverflow ? 'overflow-visible' : fixedHeight === 'auto' ? 'overflow-hidden' : 'dashboard-card-scroll overflow-y-auto overflow-x-hidden overscroll-contain'
+  const overflowClass = allowOverflow ? 'overflow-visible' : fixedHeight === 'auto' ? 'overflow-hidden' : 'dashboard-card-scroll lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain'
   return <section className={`min-w-0 ${overflowClass} rounded-[2rem] border border-[#eaded4] bg-[#fffdfa] p-5 shadow-[0_16px_44px_rgba(112,82,62,0.08)] sm:p-7 ${className}`}>{children}</section>
 }
 
@@ -398,9 +392,9 @@ export function PersonalDashboard({ user, todos: initialTodos, notes, checkInDat
           <DashboardCard allowOverflow fixedHeight={widget.height} className={`${cardHeightClass} sm:p-6`}>
             <div className="flex min-w-0 flex-col gap-4">
               <div className="min-w-0"><p className="text-sm font-bold text-[#2e2a28]">快速新增</p><p className="mt-1 text-sm text-[#8d7f76]">想到就先放進來，之後再慢慢整理。</p></div>
-              <form onSubmit={handleQuickAdd} className="flex min-w-0 w-full flex-col gap-3 sm:flex-row">
-                <PersonalSelect value={quickType} onChange={setQuickType} options={[{ value: 'todo', label: '待辦事項' }, { value: 'note', label: '筆記' }]} className="sm:w-32 sm:shrink-0" />
-                <input value={quickTitle} onChange={(event) => setQuickTitle(event.target.value)} placeholder={quickType === 'todo' ? '例如：晚上記得澆花' : '例如：今天的想法'} className="h-12 min-w-0 flex-1 rounded-2xl border border-[#e5d9cf] bg-[#fffdfa] px-4 text-sm text-[#2e2a28] outline-none placeholder:text-[#a79b91] focus:border-[#d97568] focus:ring-4 focus:ring-[#e98a7a]/15" />
+              <form onSubmit={handleQuickAdd} className="flex min-w-0 w-full flex-wrap gap-3">
+                <PersonalSelect value={quickType} onChange={setQuickType} options={[{ value: 'todo', label: '待辦事項' }, { value: 'note', label: '筆記' }]} className="min-w-[8rem] flex-[1_1_8rem]" />
+                <input value={quickTitle} onChange={(event) => setQuickTitle(event.target.value)} placeholder={quickType === 'todo' ? '例如：晚上記得澆花' : '例如：今天的想法'} className="h-12 min-w-[12rem] flex-[1_1_12rem] rounded-2xl border border-[#e5d9cf] bg-[#fffdfa] px-4 text-sm text-[#2e2a28] outline-none placeholder:text-[#a79b91] focus:border-[#d97568] focus:ring-4 focus:ring-[#e98a7a]/15" />
                 <button type="submit" disabled={quickSaving} className="h-12 shrink-0 rounded-2xl bg-[#e98a7a] px-6 text-sm font-bold text-white transition hover:bg-[#d97568] disabled:cursor-wait disabled:opacity-60">{quickSaving ? '建立中⋯' : '新增'}</button>
               </form>
             </div>
@@ -448,7 +442,7 @@ export function PersonalDashboard({ user, todos: initialTodos, notes, checkInDat
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
         <SortableContext items={visibleWidgets.map((widget) => widget.id)} strategy={rectSortingStrategy}>
-          <div className="grid min-w-0 grid-cols-12 gap-6" data-testid="dashboard-widget-grid">{visibleWidgets.map((widget) => <SortableWidget key={widget.id} widget={widget} editing={editingLayout} onToggleVisibility={(id) => updateWidget(id, { visible: false })} onResizeStart={handleResizeStart}>{renderWidget(widget)}</SortableWidget>)}</div>
+          <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-12" data-testid="dashboard-widget-grid">{visibleWidgets.map((widget) => <SortableWidget key={widget.id} widget={widget} editing={editingLayout} onToggleVisibility={(id) => updateWidget(id, { visible: false })} onResizeStart={handleResizeStart}>{renderWidget(widget)}</SortableWidget>)}</div>
         </SortableContext>
         <DragOverlay adjustScale={false} dropAnimation={{ duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' }}>{activeWidget ? <WidgetDragPreview widget={activeWidget} /> : null}</DragOverlay>
       </DndContext>
