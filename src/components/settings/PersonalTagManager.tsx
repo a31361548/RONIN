@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactElement } from 'react'
 import type { PersonalTag } from '@/types/tag'
 import { PersonalToast, type PersonalToastState } from '@/components/ui/PersonalToast'
+import { PersonalConfirmDialog } from '@/components/ui/PersonalConfirmDialog'
 
 export function PersonalTagManager(): ReactElement {
   const [tags, setTags] = useState<PersonalTag[]>([])
@@ -11,8 +12,10 @@ export function PersonalTagManager(): ReactElement {
   const [color, setColor] = useState('#E98A7A')
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<PersonalToastState | null>(null)
+  const [deletingTag, setDeletingTag] = useState<PersonalTag | null>(null)
+  const [deleteImpact, setDeleteImpact] = useState<{ noteCount: number; todoCount: number } | null>(null)
 
-  const loadTags = async () => {
+  const loadTags = async (): Promise<void> => {
     const response = await fetch('/api/tags')
     if (!response.ok) throw new Error('標籤載入失敗')
     const data = (await response.json()) as { tags: PersonalTag[] }
@@ -23,13 +26,13 @@ export function PersonalTagManager(): ReactElement {
     void loadTags().catch((error: unknown) => setToast({ tone: 'error', message: error instanceof Error ? error.message : '標籤載入失敗' }))
   }, [])
 
-  const resetForm = () => {
+  const resetForm = (): void => {
     setEditingId(null)
     setName('')
     setColor('#E98A7A')
   }
 
-  const saveTag = async () => {
+  const saveTag = async (): Promise<void> => {
     if (!name.trim()) {
       setToast({ tone: 'error', message: '請先輸入標籤名稱' })
       return
@@ -49,33 +52,32 @@ export function PersonalTagManager(): ReactElement {
     }
   }
 
-  const deleteTag = async (tag: PersonalTag) => {
-    if (!window.confirm(`刪除前請確認：確定要刪除「${tag.name}」嗎？系統會先說明它目前被哪些內容使用。`)) return
+  const deleteTag = async (tag: PersonalTag): Promise<void> => {
+    setSaving(true)
     try {
-      const check = await fetch(`/api/tags/${tag.id}`, { method: 'DELETE' })
-      if (check.status === 409) {
-        const impact = (await check.json()) as { noteCount: number; todoCount: number }
-        const confirmed = window.confirm(`「${tag.name}」目前使用於 ${impact.noteCount} 篇筆記、${impact.todoCount} 件待辦。確認刪除後，這些內容會解除標籤。`)
-        if (!confirmed) return
-        const force = await fetch(`/api/tags/${tag.id}?force=true`, { method: 'DELETE' })
-        if (!force.ok) throw new Error('標籤刪除失敗')
-      } else if (!check.ok) {
-        throw new Error('標籤刪除失敗')
+      const response = await fetch(`/api/tags/${tag.id}${deleteImpact ? '?force=true' : ''}`, { method: 'DELETE' })
+      if (response.status === 409) {
+        setDeleteImpact(await response.json() as { noteCount: number; todoCount: number })
+        return
       }
+      if (!response.ok) throw new Error('標籤刪除失敗')
       setTags((current) => current.filter((item) => item.id !== tag.id))
       if (editingId === tag.id) resetForm()
       setToast({ tone: 'success', message: '標籤已刪除' })
+      setDeletingTag(null)
+      setDeleteImpact(null)
     } catch (error) {
       setToast({ tone: 'error', message: error instanceof Error ? error.message : '標籤刪除失敗' })
-    }
+    } finally { setSaving(false) }
   }
 
   return (
     <section className="rounded-[2rem] border border-[#eaded4] bg-[#fffdfa] p-5 shadow-[0_16px_44px_rgba(112,82,62,0.08)] sm:p-7" data-testid="tag-manager">
       <div><p className="text-sm font-bold text-[#2e2a28]">標籤管理</p><p className="mt-1 text-sm leading-6 text-[#8d7f76]">建立自己的分類方式，筆記與待辦都可以共用。刪除前會說明影響範圍。</p></div>
       <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-[#fffaf6] p-4 sm:flex-row sm:items-end"><label className="min-w-0 flex-1 text-sm font-semibold text-[#695e57]">{editingId ? '修改標籤' : '新增標籤'}<input value={name} onChange={(event) => setName(event.target.value)} placeholder="例如：生活、工作、靈感" className="mt-2 h-11 w-full rounded-xl border border-[#e5d9cf] bg-[#fffdfa] px-3 text-sm font-normal text-[#4a413c] outline-none focus:border-[#d97568] focus:ring-4 focus:ring-[#e98a7a]/15" /></label><label className="text-sm font-semibold text-[#695e57]">色彩<input type="color" value={color} onChange={(event) => setColor(event.target.value)} className="mt-2 block h-11 w-16 cursor-pointer rounded-xl border border-[#e5d9cf] bg-[#fffdfa] p-1" /></label><button type="button" onClick={() => void saveTag()} disabled={saving} className="rounded-xl bg-[#e98a7a] px-4 py-3 text-sm font-bold text-white hover:bg-[#d97568] disabled:opacity-50">{saving ? '儲存中' : editingId ? '儲存' : '新增'}</button>{editingId && <button type="button" onClick={resetForm} className="rounded-xl border border-[#eaded4] px-4 py-3 text-sm font-bold text-[#776e68] hover:bg-[#faf0e8]">取消</button>}</div>
-      <div className="mt-5 flex flex-wrap gap-3">{tags.length > 0 ? tags.map((tag) => <div key={tag.id} className="flex items-center gap-2 rounded-full border border-[#eaded4] bg-[#fffaf6] py-1.5 pl-3 pr-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: tag.color }} /><span className="text-sm font-bold text-[#4a413c]">{tag.name}</span><button type="button" onClick={() => { setEditingId(tag.id); setName(tag.name); setColor(tag.color) }} className="rounded-full px-2 py-1 text-xs font-bold text-[#776e68] hover:bg-[#f6e5d9] hover:text-[#a85b4e]">編輯</button><button type="button" onClick={() => void deleteTag(tag)} className="rounded-full px-2 py-1 text-xs font-bold text-[#a85b4e] hover:bg-[#fff0ed]">刪除</button></div>) : <p className="rounded-2xl bg-[#faf3ed] px-4 py-5 text-sm text-[#9a8c83]">還沒有標籤，先建立一個適合你的分類。</p>}</div>
+      <div className="mt-5 flex flex-wrap gap-3">{tags.length > 0 ? tags.map((tag) => <div key={tag.id} className="flex items-center gap-2 rounded-full border border-[#eaded4] bg-[#fffaf6] py-1.5 pl-3 pr-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: tag.color }} /><span className="text-sm font-bold text-[#4a413c]">{tag.name}</span><button type="button" onClick={() => { setEditingId(tag.id); setName(tag.name); setColor(tag.color) }} className="rounded-full px-2 py-1 text-xs font-bold text-[#776e68] hover:bg-[#f6e5d9] hover:text-[#a85b4e]">編輯</button><button type="button" disabled={saving} onClick={() => setDeletingTag(tag)} className="rounded-full px-2 py-1 text-xs font-bold text-[#a85b4e] hover:bg-[#fff0ed]">刪除</button></div>) : <p className="rounded-2xl bg-[#faf3ed] px-4 py-5 text-sm text-[#9a8c83]">還沒有標籤，先建立一個適合你的分類。</p>}</div>
       <PersonalToast toast={toast} onDismiss={() => setToast(null)} />
+      <PersonalConfirmDialog open={Boolean(deletingTag)} title={`刪除「${deletingTag?.name ?? ''}」？`} description={deleteImpact ? `此標籤目前用於 ${deleteImpact.noteCount} 個行程或筆記、${deleteImpact.todoCount} 件待辦。再次確認後，標籤會永久刪除並從這些內容解除，內容本身會保留。` : '此標籤會永久刪除，內容本身會保留。若有內容使用此標籤，下一步會顯示數量並再次確認；若只想取消目前內容的標籤，請返回標籤選取區取消選取。'} busy={saving} onCancel={() => { setDeletingTag(null); setDeleteImpact(null) }} onConfirm={() => { if (deletingTag) void deleteTag(deletingTag) }} />
     </section>
   )
 }

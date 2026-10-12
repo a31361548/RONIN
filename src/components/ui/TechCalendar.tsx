@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import clsx from 'clsx'
+import { PersonalSelect } from '@/components/ui/PersonalSelect'
 
 interface TechCalendarProps {
   value: Date
@@ -86,25 +87,9 @@ export function TechCalendar({ value, onChange, minDate }: TechCalendarProps) {
 
       {/* Time Picker */}
       <div className="flex items-center justify-center gap-2 border-t border-samurai-blue/20 pt-4">
-        <select 
-            value={value.getHours()} 
-            onChange={(e) => handleTimeChange('hour', e.target.value)}
-            className="bg-samurai-dark border border-samurai-blue/30 text-samurai-blue p-1 rounded font-mono focus:outline-none"
-        >
-            {Array.from({ length: 24 }).map((_, i) => (
-                <option key={i} value={i}>{String(i).padStart(2, '0')}</option>
-            ))}
-        </select>
+        <PersonalSelect ariaLabel="小時" variant="tech" size="compact" className="w-20" value={String(value.getHours())} onChange={(hour) => handleTimeChange('hour', hour)} options={Array.from({ length: 24 }, (_, hour) => ({ value: String(hour), label: String(hour).padStart(2, '0') }))} />
         <span className="text-samurai-blue">:</span>
-        <select 
-            value={value.getMinutes()} 
-            onChange={(e) => handleTimeChange('minute', e.target.value)}
-            className="bg-samurai-dark border border-samurai-blue/30 text-samurai-blue p-1 rounded font-mono focus:outline-none"
-        >
-            {Array.from({ length: 60 }).map((_, i) => (
-                <option key={i} value={i}>{String(i).padStart(2, '0')}</option>
-            ))}
-        </select>
+        <PersonalSelect ariaLabel="分鐘" variant="tech" size="compact" className="w-20" value={String(value.getMinutes())} onChange={(minute) => handleTimeChange('minute', minute)} options={Array.from({ length: 60 }, (_, minute) => ({ value: String(minute), label: String(minute).padStart(2, '0') }))} />
       </div>
     </div>
   )

@@ -2,6 +2,8 @@
 
 import { useEffect, useState, type ReactElement } from 'react'
 import type { PersonalTag } from '@/types/tag'
+import { PersonalModal } from '@/components/ui/PersonalModal'
+import { PersonalTagManager } from '@/components/settings/PersonalTagManager'
 
 type PersonalTagPickerProps = {
   value: string[]
@@ -13,6 +15,18 @@ export function PersonalTagPicker({ value, onChange }: PersonalTagPickerProps): 
   const [newName, setNewName] = useState('')
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [managing, setManaging] = useState(false)
+  const closeManager = async (): Promise<void> => {
+    try {
+      const response = await fetch('/api/tags')
+      if (!response.ok) throw new Error('標籤載入失敗')
+      const data = await response.json() as { tags: PersonalTag[] }
+      setTags(data.tags)
+      const next = value.filter((id) => data.tags.some((tag) => tag.id === id))
+      if (next.length !== value.length) onChange(next)
+      setManaging(false)
+    } catch { setError('標籤同步失敗，請重新開啟管理標籤再試一次'); setManaging(false) }
+  }
 
   useEffect(() => {
     let active = true
@@ -26,11 +40,11 @@ export function PersonalTagPicker({ value, onChange }: PersonalTagPickerProps): 
     return () => { active = false }
   }, [])
 
-  const toggleTag = (id: string) => {
+  const toggleTag = (id: string): void => {
     onChange(value.includes(id) ? value.filter((tagId) => tagId !== id) : [...value, id])
   }
 
-  const createTag = async () => {
+  const createTag = async (): Promise<void> => {
     const name = newName.trim()
     if (!name) return
     setCreating(true)
@@ -51,6 +65,7 @@ export function PersonalTagPicker({ value, onChange }: PersonalTagPickerProps): 
 
   return (
     <div className="mt-2 rounded-2xl border border-[#e5d9cf] bg-[#fffaf6] p-3">
+      <div className="mb-3 flex items-center justify-between gap-3"><p className="text-xs text-[#8d7f76]">點選可加入或取消標籤</p><button type="button" onClick={() => setManaging(true)} className="text-xs font-bold text-[#a85b4e] hover:underline">管理標籤</button></div>
       <div className="flex flex-wrap gap-2">
         {tags.length > 0 ? tags.map((tag) => {
           const selected = value.includes(tag.id)
@@ -62,6 +77,7 @@ export function PersonalTagPicker({ value, onChange }: PersonalTagPickerProps): 
         <button type="button" onClick={() => void createTag()} disabled={creating || !newName.trim()} className="rounded-xl bg-[#f6e5d9] px-3 text-xs font-bold text-[#a85b4e] transition hover:bg-[#f0d9ce] disabled:opacity-50">{creating ? '建立中' : '新增'}</button>
       </div>
       {error && <p className="mt-2 text-xs text-[#a85b4e]" role="status">{error}</p>}
+      <PersonalModal open={managing} title="管理標籤" onClose={() => void closeManager()}><PersonalTagManager /></PersonalModal>
     </div>
   )
 }

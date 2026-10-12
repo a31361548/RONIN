@@ -12,7 +12,7 @@ export default async function DashboardPage(): Promise<React.ReactElement> {
   const startOfDay = new Date()
   startOfDay.setHours(0, 0, 0, 0)
 
-  const [todos, notes, checkIns, completedToday] = await Promise.all([
+  const [todos, notes, checkIns, completedToday, calendarEntries] = await Promise.all([
     prisma.todo.findMany({
       where: { userId: user.id, status: { not: 'COMPLETED' } },
       orderBy: [{ startAt: 'asc' }, { createdAt: 'desc' }],
@@ -33,6 +33,7 @@ export default async function DashboardPage(): Promise<React.ReactElement> {
     prisma.todo.count({
       where: { userId: user.id, status: 'COMPLETED', updatedAt: { gte: startOfDay } },
     }),
+    prisma.note.findMany({ where: { userId: user.id }, select: { noteDate: true, startAt: true, endAt: true } }),
   ])
 
   const dashboardUser: DashboardUser = {
@@ -61,5 +62,5 @@ export default async function DashboardPage(): Promise<React.ReactElement> {
     updatedAt: note.updatedAt.toISOString(),
   }))
 
-  return <PersonalDashboard user={dashboardUser} todos={dashboardTodos} notes={dashboardNotes} checkInDates={checkIns.map((checkIn) => checkIn.date)} completedToday={completedToday} />
+  return <PersonalDashboard user={dashboardUser} todos={dashboardTodos} notes={dashboardNotes} checkInDates={checkIns.map((checkIn) => checkIn.date)} completedToday={completedToday} calendarEntries={calendarEntries.map((entry) => ({ noteDate: entry.noteDate ?? null, startAt: entry.startAt?.toISOString() ?? null, endAt: entry.endAt?.toISOString() ?? null }))} />
 }
