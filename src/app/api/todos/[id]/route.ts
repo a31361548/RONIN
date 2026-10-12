@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/currentUser'
 import { RecurrenceType, TodoPriority, TodoStatus } from '@prisma/client'
 import { z } from 'zod'
-import { clampToFuture, ensureMinimumDuration, resolveAutoStatus, toDate } from '@/lib/todoTime'
+import { ensureMinimumDuration, resolveAutoStatus, toDate } from '@/lib/todoTime'
 
 const TodoUpdateSchema = z.object({
   title: z.string().trim().min(1).optional(),
@@ -20,11 +20,10 @@ const TodoUpdateSchema = z.object({
 type RouteContext = { params: Promise<{ id: string }> }
 
 const buildUpdatedTimeRange = (existingStart: Date, existingEnd: Date, start?: string, end?: string): { startAt: Date; endAt: Date } | null => {
-  const now = new Date()
   const startAt = start ? toDate(start) : existingStart
   const endAt = end ? toDate(end) : existingEnd
   if (!startAt || !endAt) return null
-  const nextStart = start ? clampToFuture(startAt, now) : startAt
+  const nextStart = startAt
   const nextEnd = ensureMinimumDuration(nextStart, endAt)
   return { startAt: nextStart, endAt: nextEnd }
 }

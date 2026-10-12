@@ -45,6 +45,7 @@ type PersonalDashboardProps = {
   notes: DashboardNote[]
   checkInDates: string[]
   completedToday: number
+  calendarEntries: Array<{ noteDate: string | null; startAt: string | null; endAt: string | null }>
 }
 
 type WidgetId = 'quickAdd' | 'today' | 'unfinished' | 'notes' | 'reminders' | 'calendar' | 'quote'
@@ -63,8 +64,8 @@ const DEFAULT_LAYOUT: WidgetConfig[] = [
   { id: 'today', label: '今日待辦', visible: true, size: 'medium', height: 'auto' },
   { id: 'reminders', label: '今日提醒', visible: true, size: 'small', height: 'auto' },
   { id: 'unfinished', label: '未完成事項', visible: true, size: 'medium', height: 'auto' },
-  { id: 'calendar', label: '月曆', visible: true, size: 'small', height: 'auto' },
-  { id: 'notes', label: '最近筆記', visible: true, size: 'medium', height: 'auto' },
+  { id: 'calendar', label: '行事曆', visible: true, size: 'small', height: 'auto' },
+  { id: 'notes', label: '最近行程', visible: true, size: 'medium', height: 'auto' },
   { id: 'quote', label: '自訂文字區塊', visible: true, size: 'small', height: 'auto' },
 ]
 
@@ -107,12 +108,6 @@ function sizeLabel(size: WidgetSize): string {
   if (size === 'small') return '4 欄'
   if (size === 'medium') return '8 欄'
   return '滿版'
-}
-
-function heightLabel(height: WidgetHeight): string {
-  if (height === 'compact') return '較矮'
-  if (height === 'tall') return '較高'
-  return '自適應'
 }
 
 function widgetHeightClass(height: WidgetHeight): string {
@@ -192,8 +187,8 @@ function SortableWidget({ widget, editing, children, onToggleVisibility, onResiz
   }
 
   return (
-    <motion.div ref={setNodeRef} style={style} layout transition={{ layout: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }} className={`relative min-w-0 ${widgetSpan(widget.size)} ${editing ? 'touch-none' : ''} ${isDragging ? 'z-20' : ''}`} data-widget-id={widget.id} {...(editing ? attributes : {})} {...(editing ? listeners : {})} aria-label={editing ? `拖曳排序${widget.label}` : undefined}>
-      {editing && <div className="mb-2 flex min-w-0 items-center gap-2 rounded-2xl border border-[#eaded4] bg-[#fffaf6] px-3 py-2 text-xs text-[#9a8c83] shadow-[0_6px_16px_rgba(112,82,62,0.05)]"><span className="shrink-0 text-[#b7655a]"><GripIcon /></span><span className="min-w-0 truncate font-bold text-[#4a413c]">{widget.label}</span><span className="shrink-0 rounded-xl bg-[#f3e7dc] px-2 py-1 font-semibold text-[#9a6a5f]">{sizeLabel(widget.size)}</span><span className="shrink-0 rounded-xl bg-[#f8efe8] px-2 py-1 font-semibold text-[#9a6a5f]">{heightLabel(widget.height)}</span><button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onToggleVisibility(widget.id) }} className="ml-auto shrink-0 rounded-xl px-2 py-1 font-bold text-[#a85b4e] transition hover:bg-[#fff0eb]">隱藏</button></div>}
+    <motion.div ref={setNodeRef} style={style} layout transition={{ layout: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }} className={`relative min-w-0 ${widgetSpan(widget.size)}  ${isDragging ? 'z-20' : ''}`} data-widget-id={widget.id}>
+      {editing && <div className="mb-2 flex min-w-0 items-center gap-2 rounded-2xl border border-[#eaded4] bg-[#fffaf6] px-3 py-2 text-xs text-[#9a8c83] shadow-[0_6px_16px_rgba(112,82,62,0.05)]"><button type="button" {...attributes} {...listeners} className="shrink-0 cursor-grab touch-none text-[#b7655a] active:cursor-grabbing" aria-label={`拖曳排序${widget.label}`}><GripIcon /></button><span className="min-w-0 truncate font-bold text-[#4a413c]">{widget.label}</span><button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onToggleVisibility(widget.id) }} className="ml-auto shrink-0 rounded-xl px-2 py-1 font-bold text-[#a85b4e] transition hover:bg-[#fff0eb]">隱藏</button></div>}
       <div className={`relative min-w-0 ${editing ? 'rounded-[2.15rem] ring-2 ring-[#e8c5bb] ring-offset-2 ring-offset-[#fcf7f2]' : ''}`}>
         {children}
         {editing && <button type="button" data-resize-handle="true" onPointerDown={(event) => onResizeStart(event, widget.id, widget.size, widget.height)} onClick={(event) => event.stopPropagation()} className="absolute bottom-3 right-3 z-20 hidden h-9 w-9 cursor-se-resize items-center justify-center rounded-xl border border-[#eaded4] bg-[#fffdfa] text-[#b7655a] shadow-sm transition hover:border-[#d9a59a] hover:bg-[#fff0eb] lg:flex" aria-label={`拖曳調整${widget.label}大小`} title="拖曳調整寬度與高度"><ResizeIcon /></button>}
@@ -210,7 +205,7 @@ type DashboardCardProps = {
 }
 
 function DashboardCard({ children, className = '', allowOverflow = false, fixedHeight = 'auto' }: DashboardCardProps): ReactElement {
-  const overflowClass = allowOverflow ? 'overflow-visible' : fixedHeight === 'auto' ? 'overflow-hidden' : 'dashboard-card-scroll overflow-y-auto overflow-x-hidden overscroll-contain'
+  const overflowClass = allowOverflow ? 'overflow-visible' : fixedHeight === 'auto' ? 'overflow-hidden' : 'dashboard-card-scroll lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain'
   return <section className={`min-w-0 ${overflowClass} rounded-[2rem] border border-[#eaded4] bg-[#fffdfa] p-5 shadow-[0_16px_44px_rgba(112,82,62,0.08)] sm:p-7 ${className}`}>{children}</section>
 }
 
@@ -241,7 +236,7 @@ function TodoRow({ todo, onComplete }: { todo: DashboardTodo; onComplete: (id: s
   )
 }
 
-export function PersonalDashboard({ user, todos: initialTodos, notes, checkInDates, completedToday }: PersonalDashboardProps): ReactElement {
+export function PersonalDashboard({ user, todos: initialTodos, notes, checkInDates, completedToday, calendarEntries }: PersonalDashboardProps): ReactElement {
   const router = useRouter()
   const [todos, setTodos] = useState(initialTodos)
   const [quickType, setQuickType] = useState<'todo' | 'note'>('todo')
@@ -302,7 +297,22 @@ export function PersonalDashboard({ user, todos: initialTodos, notes, checkInDat
 
   const todayTodos = useMemo(() => todos.filter((todo) => todo.status !== 'COMPLETED' && isToday(todo.startAt)).slice(0, 5), [todos])
   const unfinishedTodos = useMemo(() => todos.filter((todo) => todo.status !== 'COMPLETED').slice(0, 6), [todos])
-  const scheduledDays = useMemo(() => new Set([...todos.map((todo) => dateKey(new Date(todo.startAt))), ...checkInDates]), [checkInDates, todos])
+  const scheduledDays = useMemo(() => {
+    const dates = new Set([...todos.map((todo) => dateKey(new Date(todo.startAt))), ...checkInDates])
+    const now = new Date()
+    const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+    for (const entry of calendarEntries) {
+      if (entry.noteDate) dates.add(entry.noteDate)
+      if (entry.startAt && entry.endAt) {
+        for (let day = 1; day <= days; day++) {
+          const start = new Date(now.getFullYear(), now.getMonth(), day)
+          const end = new Date(now.getFullYear(), now.getMonth(), day + 1)
+          if (new Date(entry.startAt) < end && new Date(entry.endAt) > start) dates.add(dateKey(start))
+        }
+      }
+    }
+    return dates
+  }, [checkInDates, todos, calendarEntries])
   const displayName = user.name || user.email.split('@')[0]
   const now = new Date()
   const monthLabel = new Intl.DateTimeFormat('zh-TW', { year: 'numeric', month: 'long' }).format(now)
@@ -332,11 +342,11 @@ export function PersonalDashboard({ user, todos: initialTodos, notes, checkInDat
       const nowValue = new Date()
       const payload = quickType === 'todo'
         ? { title: quickTitle.trim(), startAt: nowValue.toISOString(), endAt: new Date(nowValue.getTime() + 30 * 60 * 1000).toISOString() }
-        : { title: quickTitle.trim(), content: '' }
+        : { title: quickTitle.trim(), content: '', noteDate: dateKey(nowValue), startAt: nowValue.toISOString(), endAt: new Date(nowValue.getTime() + 30 * 60 * 1000).toISOString() }
       const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!response.ok) throw new Error('建立失敗')
       setQuickTitle('')
-      setToast({ tone: 'success', message: quickType === 'todo' ? '已加入今日待辦' : '已建立新筆記' })
+      setToast({ tone: 'success', message: quickType === 'todo' ? '已加入今日待辦' : '已加入行事曆' })
       router.refresh()
     } catch (error) {
       setToast({ tone: 'error', message: error instanceof Error ? error.message : '建立失敗，請稍後再試' })
@@ -398,9 +408,9 @@ export function PersonalDashboard({ user, todos: initialTodos, notes, checkInDat
           <DashboardCard allowOverflow fixedHeight={widget.height} className={`${cardHeightClass} sm:p-6`}>
             <div className="flex min-w-0 flex-col gap-4">
               <div className="min-w-0"><p className="text-sm font-bold text-[#2e2a28]">快速新增</p><p className="mt-1 text-sm text-[#8d7f76]">想到就先放進來，之後再慢慢整理。</p></div>
-              <form onSubmit={handleQuickAdd} className="flex min-w-0 w-full flex-col gap-3 sm:flex-row">
-                <PersonalSelect value={quickType} onChange={setQuickType} options={[{ value: 'todo', label: '待辦事項' }, { value: 'note', label: '筆記' }]} className="sm:w-32 sm:shrink-0" />
-                <input value={quickTitle} onChange={(event) => setQuickTitle(event.target.value)} placeholder={quickType === 'todo' ? '例如：晚上記得澆花' : '例如：今天的想法'} className="h-12 min-w-0 flex-1 rounded-2xl border border-[#e5d9cf] bg-[#fffdfa] px-4 text-sm text-[#2e2a28] outline-none placeholder:text-[#a79b91] focus:border-[#d97568] focus:ring-4 focus:ring-[#e98a7a]/15" />
+              <form onSubmit={handleQuickAdd} className="flex min-w-0 w-full flex-wrap gap-3">
+                <PersonalSelect value={quickType} onChange={setQuickType} options={[{ value: 'todo', label: '待辦事項' }, { value: 'note', label: '行程' }]} className="min-w-[8rem] flex-[1_1_8rem]" />
+                <input value={quickTitle} onChange={(event) => setQuickTitle(event.target.value)} placeholder={quickType === 'todo' ? '例如：晚上記得澆花' : '例如：下午的專案討論'} className="h-12 min-w-[12rem] flex-[1_1_12rem] rounded-2xl border border-[#e5d9cf] bg-[#fffdfa] px-4 text-sm text-[#2e2a28] outline-none placeholder:text-[#a79b91] focus:border-[#d97568] focus:ring-4 focus:ring-[#e98a7a]/15" />
                 <button type="submit" disabled={quickSaving} className="h-12 shrink-0 rounded-2xl bg-[#e98a7a] px-6 text-sm font-bold text-white transition hover:bg-[#d97568] disabled:cursor-wait disabled:opacity-60">{quickSaving ? '建立中⋯' : '新增'}</button>
               </form>
             </div>
@@ -418,7 +428,7 @@ export function PersonalDashboard({ user, todos: initialTodos, notes, checkInDat
     }
 
     if (widget.id === 'notes') {
-      return <div key={widget.id} className={wrapperClass}><DashboardCard fixedHeight={widget.height} className={cardHeightClass}><div className="flex min-w-0 items-start justify-between gap-4"><div className="min-w-0"><p className="text-sm font-bold text-[#2e2a28]">最近筆記</p><p className="mt-1 text-sm text-[#8d7f76]">讓剛剛寫下的想法容易被找回來。</p></div><Link href="/dashboard/notes" className="shrink-0 text-sm font-semibold text-[#b7655a] hover:text-[#8f4d45]">查看筆記</Link></div><div className="mt-4 space-y-1">{notes.length > 0 ? notes.map((note) => <Link key={note.id} href={`/dashboard/notes/${note.id}`} className="flex min-w-0 items-center justify-between gap-4 rounded-2xl px-4 py-3 transition hover:bg-[#faf3ed]"><span className="min-w-0 truncate text-sm font-semibold text-[#4a413c]">{note.title}</span><span className="shrink-0 text-xs text-[#a79b91]">{formatDate(note.updatedAt)}</span></Link>) : <div className="rounded-2xl bg-[#faf3ed] px-5 py-8 text-center"><p className="text-base font-bold text-[#695e57]">還沒有筆記</p><p className="mt-2 text-sm text-[#9a8c83]">把一個念頭寫下來，日隅會替你留著。</p></div>}</div></DashboardCard></div>
+      return <div key={widget.id} className={wrapperClass}><DashboardCard fixedHeight={widget.height} className={cardHeightClass}><div className="flex min-w-0 items-start justify-between gap-4"><div className="min-w-0"><p className="text-sm font-bold text-[#2e2a28]">最近行程</p><p className="mt-1 text-sm text-[#8d7f76]">查看最近新增或修改的行程內容。</p></div><Link href="/dashboard/calendar" className="shrink-0 text-sm font-semibold text-[#b7655a] hover:text-[#8f4d45]">查看行事曆</Link></div><div className="mt-4 space-y-1">{notes.length > 0 ? notes.map((note) => <Link key={note.id} href={`/dashboard/calendar?entry=${note.id}`} className="flex min-w-0 items-center justify-between gap-4 rounded-2xl px-4 py-3 transition hover:bg-[#faf3ed]"><span className="min-w-0 truncate text-sm font-semibold text-[#4a413c]">{note.title}</span><span className="shrink-0 text-xs text-[#a79b91]">{formatDate(note.updatedAt)}</span></Link>) : <div className="rounded-2xl bg-[#faf3ed] px-5 py-8 text-center"><p className="text-base font-bold text-[#695e57]">還沒有行程</p><p className="mt-2 text-sm text-[#9a8c83]">新增一個行程，時間和筆記一起留著。</p></div>}</div></DashboardCard></div>
     }
 
     if (widget.id === 'reminders') {
@@ -426,7 +436,7 @@ export function PersonalDashboard({ user, todos: initialTodos, notes, checkInDat
     }
 
     if (widget.id === 'calendar') {
-      return <div key={widget.id} className={wrapperClass}><DashboardCard fixedHeight={widget.height} className={`${cardHeightClass} sm:p-6`}><div className="flex min-w-0 items-center justify-between gap-3"><div className="min-w-0"><p className="text-sm font-bold text-[#2e2a28]">月曆</p><p className="mt-1 truncate text-sm text-[#8d7f76]">{monthLabel}</p></div><span className="shrink-0 rounded-full bg-[#e5efe2] px-3 py-1 text-xs font-bold text-[#5f7f5a]">{completedToday} 完成</span></div><div className="mt-5 grid grid-cols-7 gap-1 text-center text-xs font-semibold text-[#a79b91]">{weekdays.map((weekday) => <span key={weekday} className="py-2">{weekday}</span>)}{calendarCells.map((day, index) => { if (!day) return <span key={`empty-${index}`} className="h-9" aria-hidden="true" />; const key = dateKey(new Date(now.getFullYear(), now.getMonth(), day)); const active = key === selectedDate; const marked = scheduledDays.has(key); return <button key={key} type="button" onClick={() => setSelectedDate(key)} className={`relative flex h-9 items-center justify-center rounded-xl text-sm transition ${active ? 'bg-[#e98a7a] font-bold text-white' : 'text-[#695e57] hover:bg-[#faf0e8]'}`}>{day}{marked && !active && <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[#d97568]" />}</button> })}</div><p className="mt-4 break-words rounded-2xl bg-[#faf3ed] px-4 py-3 text-sm text-[#776e68]">已選擇 {selectedDate}</p></DashboardCard></div>
+      return <div key={widget.id} className={wrapperClass}><DashboardCard fixedHeight={widget.height} className={`${cardHeightClass} sm:p-6`}><div className="flex min-w-0 items-center justify-between gap-3"><div className="min-w-0"><p className="text-sm font-bold text-[#2e2a28]">行事曆</p><p className="mt-1 truncate text-sm text-[#8d7f76]">{monthLabel}</p></div><span className="shrink-0 rounded-full bg-[#e5efe2] px-3 py-1 text-xs font-bold text-[#5f7f5a]">{completedToday} 完成</span></div><div className="mt-5 grid grid-cols-7 gap-1 text-center text-xs font-semibold text-[#a79b91]">{weekdays.map((weekday) => <span key={weekday} className="py-2">{weekday}</span>)}{calendarCells.map((day, index) => { if (!day) return <span key={`empty-${index}`} className="h-9" aria-hidden="true" />; const key = dateKey(new Date(now.getFullYear(), now.getMonth(), day)); const active = key === selectedDate; const marked = scheduledDays.has(key); return <button key={key} type="button" onClick={() => setSelectedDate(key)} className={`relative flex h-9 items-center justify-center rounded-xl text-sm transition ${active ? 'bg-[#e98a7a] font-bold text-white' : 'text-[#695e57] hover:bg-[#faf0e8]'}`}>{day}{marked && !active && <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[#d97568]" />}</button> })}</div><p className="mt-4 break-words rounded-2xl bg-[#faf3ed] px-4 py-3 text-sm text-[#776e68]"><Link href="/dashboard/calendar" className="font-semibold text-[#a85b4e]">開啟行事曆</Link> · 已選擇 {selectedDate}</p></DashboardCard></div>
     }
 
     return <div key={widget.id} className={wrapperClass}><DashboardCard fixedHeight={widget.height} className={`${cardHeightClass} sm:p-6`}><div className="flex min-w-0 items-center justify-between gap-3"><p className="min-w-0 text-sm font-bold text-[#2e2a28]">給自己的話</p><button type="button" onClick={() => editingText ? handleSaveCustomText() : setEditingText(true)} className="shrink-0 text-xs font-bold text-[#b7655a] hover:text-[#8f4d45]">{editingText ? '儲存' : '編輯'}</button></div>{editingText ? <textarea value={customText} onChange={(event) => setCustomText(event.target.value)} rows={4} className="mt-4 w-full resize-none rounded-2xl border border-[#e5d9cf] bg-[#fffdfa] p-4 text-sm leading-6 text-[#4a413c] outline-none focus:border-[#d97568] focus:ring-4 focus:ring-[#e98a7a]/15" /> : <p className="mt-4 break-words rounded-2xl bg-[#fff4e6] px-4 py-5 text-base font-semibold leading-7 text-[#725d4e]">{customText}</p>}</DashboardCard></div>
@@ -448,7 +458,7 @@ export function PersonalDashboard({ user, todos: initialTodos, notes, checkInDat
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
         <SortableContext items={visibleWidgets.map((widget) => widget.id)} strategy={rectSortingStrategy}>
-          <div className="grid min-w-0 grid-cols-12 gap-6" data-testid="dashboard-widget-grid">{visibleWidgets.map((widget) => <SortableWidget key={widget.id} widget={widget} editing={editingLayout} onToggleVisibility={(id) => updateWidget(id, { visible: false })} onResizeStart={handleResizeStart}>{renderWidget(widget)}</SortableWidget>)}</div>
+          <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-12" data-testid="dashboard-widget-grid">{visibleWidgets.map((widget) => <SortableWidget key={widget.id} widget={widget} editing={editingLayout} onToggleVisibility={(id) => updateWidget(id, { visible: false })} onResizeStart={handleResizeStart}>{renderWidget(widget)}</SortableWidget>)}</div>
         </SortableContext>
         <DragOverlay adjustScale={false} dropAnimation={{ duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' }}>{activeWidget ? <WidgetDragPreview widget={activeWidget} /> : null}</DragOverlay>
       </DndContext>

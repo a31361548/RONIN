@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/currentUser'
 import { RecurrenceType, TodoPriority, TodoStatus } from '@prisma/client'
 import { z } from 'zod'
-import { clampToFuture, ensureMinimumDuration, resolveAutoStatus, toDate, DEFAULT_DURATION_MS } from '@/lib/todoTime'
+import { ensureMinimumDuration, resolveAutoStatus, toDate, DEFAULT_DURATION_MS } from '@/lib/todoTime'
 
 const TodoPayloadSchema = z.object({
   title: z.string().trim().min(1),
@@ -21,7 +21,7 @@ const buildTimeRange = (start?: string, end?: string): { startAt: Date; endAt: D
   const now = new Date()
   const parsedStart = start ? toDate(start) : null
   if (start && !parsedStart) return null
-  const startAt = clampToFuture(parsedStart ?? now, now)
+  const startAt = parsedStart ?? now
   const parsedEnd = end ? toDate(end) : null
   if (end && !parsedEnd) return null
   const suggestedEnd = parsedEnd ?? new Date(startAt.getTime() + DEFAULT_DURATION_MS)

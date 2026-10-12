@@ -1,5 +1,8 @@
+'use client'
+
 import React, { useState, useEffect, type Dispatch, type SetStateAction } from 'react';
 import Swal from 'sweetalert2';
+import { PersonalSelect } from '@/components/ui/PersonalSelect';
 
 interface ForgeArchiveProps {
   input: string;
@@ -256,20 +259,7 @@ export const ForgeArchive: React.FC<ForgeArchiveProps> = ({
 
        {/* List Selection (Tech Dropdown) */}
        <div className="relative mb-4">
-          <select 
-            className="w-full bg-samurai-dark border border-samurai-blue/30 text-samurai-blue font-tech p-3 rounded focus:outline-none focus:border-samurai-blue focus:shadow-[0_0_15px_rgba(59,130,246,0.3)] appearance-none cursor-pointer uppercase tracking-wider"
-            onChange={(e) => loadList(e.target.value)}
-            value={currentListId || ''}
-            disabled={isSpinning}
-          >
-             <option value="" disabled>SELECT DATASET...</option>
-             {lists.map(l => (
-               <option key={l.id} value={l.id}>{l.title}</option>
-             ))}
-          </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-samurai-blue">
-             ▼
-          </div>
+          <PersonalSelect ariaLabel="選擇卷軸" variant="tech" value={currentListId || ''} onChange={loadList} disabled={isSpinning} placeholder="SELECT DATASET..." options={lists.map((list) => ({ value: list.id, label: list.title }))} />
        </div>
 
        {/* Input Area */}

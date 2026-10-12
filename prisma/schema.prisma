@@ -53,6 +53,9 @@ model User {
   checkIns  CheckIn[]
   todos     Todo[]
   tags      Tag[]
+  financeLedger FinanceLedger?
+  financeEntries FinanceEntry[]
+  financeBatches FinanceBatch[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -62,6 +65,9 @@ model Note {
   title     String
   content   String   // HTML content from Tiptap
   tagIds    String[] @default([])
+  noteDate  String?  // Calendar date: YYYY-MM-DD, independent of updatedAt
+  startAt   DateTime?
+  endAt     DateTime?
   userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
@@ -124,4 +130,47 @@ model Tag {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, name])
+}
+
+// Website records are a working copy; Excel remains the authoritative ledger.
+model FinanceLedger {
+  id        String   @id @default(uuid()) @map("_id")
+  userId    String   @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model FinanceEntry {
+  id               String   @id @default(uuid()) @map("_id")
+  userId           String   @db.ObjectId
+  user             User     @relation(fields: [userId], references: [id])
+  kind             String
+  data             Json
+  revision         Int      @default(1)
+  exportedRevision Int      @default(0)
+  syncedRevision   Int      @default(0)
+  syncError        String?
+  sourceRefs       Json?
+  changeId         String   @default(uuid())
+  masterRevision   Int?
+  masterHash       String?
+  recordedDate     String?
+  serverShadow     Json?
+  deleted          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+model FinanceBatch {
+  id          String   @id @default(uuid()) @map("_id")
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  payload     Json
+  // Per-record receipts support partial returns and safe repeated imports.
+  receipts    Json
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
 }

@@ -7,7 +7,7 @@ import { signOut, useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState, type FocusEvent, type ReactElement, type ReactNode } from 'react'
 
-type IconName = 'home' | 'checklist' | 'note' | 'settings' | 'calendar' | 'users' | 'logout'
+type IconName = 'home' | 'checklist' | 'note' | 'settings' | 'calendar' | 'wallet' | 'users' | 'logout'
 
 type NavItem = {
   label: string
@@ -18,7 +18,8 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { label: '首頁', href: '/dashboard', icon: 'home' },
   { label: '待辦事項', href: '/dashboard/todos', icon: 'checklist' },
-  { label: '筆記', href: '/dashboard/notes', icon: 'note' },
+  { label: '行事曆', href: '/dashboard/calendar', icon: 'calendar' },
+  { label: '記帳', href: '/dashboard/finance', icon: 'wallet' },
   { label: '設定', href: '/dashboard/settings', icon: 'settings' },
 ]
 
@@ -79,6 +80,8 @@ function SidebarIcon({ name }: { name: IconName }): ReactElement {
           <path d="M8 3.5v4M16 3.5v4M4 10h16M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01" />
         </svg>
       )
+    case 'wallet':
+      return <svg {...commonProps}><path d="M4 6.5V5a2 2 0 0 1 2-2h12v4M4 6.5h15a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H6a2 2 0 0 1-2-2v-12ZM20 11h-5v5h5M17.5 13.5h.01" /></svg>
     case 'users':
       return (
         <svg {...commonProps}>
@@ -203,10 +206,6 @@ export function PersonalShell({ children }: { children: ReactNode }) {
               </Link>
             )
           })}
-          <Link href="/dashboard/calendar" aria-current={pathname === '/dashboard/calendar' ? 'page' : undefined} title="月曆" aria-label="月曆" className={`group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition ${sidebarExpanded ? 'justify-start px-4' : 'justify-center'} ${pathname === '/dashboard/calendar' ? 'bg-[#f6e5d9] text-[#a85b4e]' : 'text-[#776e68] hover:bg-[#faf0e8] hover:text-[#2e2a28]'}`}>
-            <SidebarIcon name="calendar" />
-            <span data-sidebar-label aria-hidden={!sidebarExpanded} className="inline-block max-w-0 overflow-hidden whitespace-nowrap opacity-0">月曆</span>
-          </Link>
         </nav>
 
         <div className="mt-auto space-y-4">
@@ -247,7 +246,7 @@ export function PersonalShell({ children }: { children: ReactNode }) {
           <div className="mx-auto w-full max-w-6xl">{children}</div>
         </main>
 
-        <nav className="fixed inset-x-4 bottom-4 z-40 grid grid-cols-4 rounded-3xl border border-[#eaded4] bg-[#fffdfa]/95 p-2 shadow-[0_18px_48px_rgba(112,82,62,0.14)] backdrop-blur lg:hidden" aria-label="手機主要導覽">
+        <nav className="fixed inset-x-4 bottom-4 z-40 grid grid-cols-5 rounded-3xl border border-[#eaded4] bg-[#fffdfa]/95 p-2 shadow-[0_18px_48px_rgba(112,82,62,0.14)] backdrop-blur lg:hidden" aria-label="手機主要導覽">
           {NAV_ITEMS.map((item) => {
             const active = item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href)
             return (
