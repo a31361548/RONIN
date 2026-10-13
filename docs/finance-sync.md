@@ -7,7 +7,9 @@
 - UTF-8 JSON，`schemaVersion=1`、`appId=riyue`、`timezone=Asia/Taipei`。
 - 固定採用 `datasetId`、`clientId`、`clientRevision`、`baseMasterRevision`、`baseMasterHash`。先前對話提出的 ledgerId/entryId/exportedRevision 改名版本撤回；不得混用或默默接受別名。
 - Excel 是正式來源；網站為独立紀錄與待同步端。SQLite 是衍生查詢層，不直接寫入。
-- 此版不匯入完整 Excel 歷史、不處理投資、不與行事曆關聯。
+- 此 JSON 交換協議不包含完整 Excel 歷史、不處理投資、不與行事曆關聯。網站另提供 XLSX 歷史副本匯入，見 [finance-history-import.md](finance-history-import.md)，不改動本協議。
+- 網站本地現金錢包使用 `accountId=cash`，不屬於此 v1 契約；其新建支出保留待同步並提示原因，不加入 v1 匯出批次，回匯亦不接受 cash 帳戶。其他相容紀錄仍可正常交換，不以銀行假代錢包。
+- 收入本地核對註記不進入交換 payload。尚未核對的疑似收入會阻擋新匯出；使用者確認已包含在 Excel 月收入的網站紀錄會排除再次匯出，保留原收入與註解，不冒充正式同步。操作與回退見 [finance-income-reconciliation.md](finance-income-reconciliation.md)。
 - payload 外所有欄位必須精確符合本契約；禁止未知欄位。payload 亦只允許本文件列出的欄位。
 - 日期為有效 `YYYY-MM-DD`，月份為有效 `YYYY-MM`，時間為含 Z 或時區位移的 ISO 8601。金額為非負十進位字串、恰兩位小數，不允許科學記號或默默四捨五入；幣別僅 TWD。balanceAfter 可為帶負號的兩位小數字串。UUID 為標準連字號格式。
 - `masterId` 保留原有正式 ID（例如歷史 EXP-、exp_、cc_、MOV-）；網站 UUID 不替換它。
@@ -198,5 +200,5 @@ Issue 精確包含三個必填欄位：code（非空 string，穩定機器碼）
 
 - Mock：node scripts/finance-api-check.cjs，不連線資料庫、不改正式 Excel。
 - 型別：tsc --noEmit --incremental false。
-- Prisma schema 可 validate；本機 generate engine 檔被既有開發程序鎖定，需取得重啟許可後完整產生。
+- Prisma validate／generate 已通過；引擎曾被開發程序鎖定，使用者同意重啟後完整產生。網站客製化設定另存，交換 payload 保持版本 1，詳見 finance-customization.md。
 - 回退：還原本次記帳新增檔案、Prisma finance models/User relations 與 PersonalShell 記帳導覽即可；本次未執行資料庫 schema push 或正式 Excel 交換。

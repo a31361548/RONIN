@@ -6,8 +6,8 @@ import { returnSchema, type ReturnFile, type FinanceExport } from '@/lib/finance
 import type { ImportPreview } from '@/lib/finance/sync'
 import { financeFieldLabels } from './FinanceRecordDetails'
 
-export async function financeRequest<T>(url: string, body?: unknown): Promise<T> {
-  const response = await fetch(url, body === undefined ? undefined : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+export async function financeRequest<T>(url: string, body?: unknown, method: 'POST' | 'PATCH' = 'POST'): Promise<T> {
+  const response = await fetch(url, body === undefined ? undefined : { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
   if (!response.ok) {
     const text = await response.text()
     let message = text
@@ -28,7 +28,7 @@ function download(file: FinanceExport): void {
 
 type Batch = { id: string; createdAt: string }
 type Preview = ImportPreview & { alreadyApplied: boolean }
-export function FinanceSyncPanel({ batches, pendingCount, onRefresh }: { batches: Batch[]; pendingCount: number; onRefresh: () => Promise<void> }): ReactElement {
+export function FinanceSyncPanel({ batches, pendingCount, walletPendingCount = 0, incomeReviewCount = 0, includedIncomeCount = 0, onRefresh }: { batches: Batch[]; pendingCount: number; walletPendingCount?: number; incomeReviewCount?: number; includedIncomeCount?: number; onRefresh: () => Promise<void> }): ReactElement {
   const input = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -69,8 +69,11 @@ export function FinanceSyncPanel({ batches, pendingCount, onRefresh }: { batches
     finally { setBusy(false) }
   }
   return <section className="rounded-3xl border border-[#eaded4] bg-[#fffdfa] p-5 sm:p-6" data-testid="finance-sync">
-    <div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="text-lg font-bold">與 Excel 同步</h2><p className="mt-2 text-sm leading-6 text-[#8d7f76]">{pendingCount} 筆待同步 · 匯出後仍需回匯確認。Excel 是正式主帳本。</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => void exportFile()} disabled={busy || pendingCount === 0} className="rounded-xl bg-[#e98a7a] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{busy ? '處理中⋯' : '匯出待同步紀錄'}</button><button type="button" onClick={() => input.current?.click()} disabled={busy} className="rounded-xl border border-[#eaded4] px-4 py-2.5 text-sm font-bold text-[#776e68] disabled:opacity-50">匯入同步結果</button><input ref={input} type="file" accept=".json,application/json" aria-label="選擇 Excel 同步回匯檔" className="hidden" onChange={(event) => { const selected = event.target.files?.[0]; if (selected) void loadFile(selected) }} /></div></div>
-    <p className="mt-4 rounded-xl bg-[#fffaf6] p-3 text-xs leading-6 text-[#8d7f76]">第一版使用 JSON 交換檔，單批最多 100 筆，信用卡與支出不拆開。收入與資金異動的 Excel 來源、正式刪除及同步工具仍需帳本端支援；被拒絕的資料會保留待同步與原因，不會默默忽略。</p>
+    <div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="text-lg font-bold">將網站新帳同步回 Excel</h2><p className="mt-2 text-sm leading-6 text-[#8d7f76]">{pendingCount} 筆待同步 · 匯出後仍需回匯確認。Excel 是正式主帳本。</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => void exportFile()} disabled={busy || incomeReviewCount > 0 || pendingCount === walletPendingCount} className="rounded-xl bg-[#e98a7a] px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{busy ? '處理中⋯' : '匯出待同步紀錄'}</button><button type="button" onClick={() => input.current?.click()} disabled={busy} className="rounded-xl border border-[#eaded4] px-4 py-2.5 text-sm font-bold text-[#776e68] disabled:opacity-50">匯入同步結果</button><input ref={input} type="file" accept=".json,application/json" aria-label="選擇 Excel 同步回匯檔" className="hidden" onChange={(event) => { const selected = event.target.files?.[0]; if (selected) void loadFile(selected) }} /></div></div>
+    {incomeReviewCount > 0 && <p className="mt-3 rounded-xl bg-[#fff8e7] p-3 text-sm font-semibold text-[#806023]">{incomeReviewCount} 筆收入可能重複，請使用下方「核對收入」完成確認，再匯出新批次。</p>}
+    {includedIncomeCount > 0 && <p className="mt-3 text-sm leading-6 text-[#4f704e]">{includedIncomeCount} 筆收入已確認包含在 Excel 月收入；網站保留紀錄與註解，不再匯出為新收入。</p>}
+    {walletPendingCount > 0 && <p className="mt-4 rounded-xl border border-[#ead9ad] bg-[#fff8e8] p-3 text-xs leading-6 text-[#806023]">其中 {walletPendingCount} 筆現金錢包紀錄已保存在網站，等待 Excel 交換規則支援。匯出只包含其餘 {pendingCount - walletPendingCount} 筆；不會將現金改成銀行帳戶。</p>}
+    <details className="mt-4 text-sm text-[#75665d]"><summary className="cursor-pointer font-semibold">同步流程與限制</summary><p className="mt-2 rounded-xl bg-[#fffaf6] p-3 text-sm leading-6">第一版使用 JSON 交換檔，單批最多 100 筆，信用卡與支出不拆開。收入與資金異動的 Excel 來源、正式刪除及同步工具仍需帳本端支援；被拒絕的資料會保留待同步與原因，不會默默忽略。</p></details>
     {batches.length > 0 && <details className="mt-4 text-sm"><summary className="cursor-pointer font-semibold text-[#776e68]">最近匯出批次（可重新下載原檔）</summary><ul className="mt-3 space-y-2">{batches.map((batch) => <li key={batch.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#faf3ed] px-3 py-2"><span className="break-all text-xs text-[#8d7f76]">{new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', dateStyle: 'short', timeStyle: 'short' }).format(new Date(batch.createdAt))} · {batch.id.slice(0, 8)}</span><button type="button" disabled={busy} onClick={() => void exportFile(batch.id)} className="text-xs font-bold text-[#a85b4e]">下載原批次</button></li>)}</ul></details>}
     {error && <p role="alert" className="mt-3 text-sm text-[#a85b4e]">{error}</p>}{message && <p role="status" className="mt-3 text-sm text-[#5f7f5a]">{message}</p>}
     <PersonalModal open={preview !== null} title="同步結果預覽" onClose={() => { setPreview(null); setFile(null) }} busy={busy}>

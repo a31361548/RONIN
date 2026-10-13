@@ -54,7 +54,7 @@ export function PersonalSelect<Value extends string>(props: PersonalSelectProps<
     focusOnOpen.current = focus
     setQuery('')
     // Preserve modal focus boundaries, with fixed positioning outside scrolling content.
-    setHost(buttonRef.current?.closest<HTMLElement>('[data-personal-modal]') ?? document.body)
+    setHost(buttonRef.current?.closest<HTMLElement>('[data-personal-picker], [data-personal-modal]') ?? document.body)
     setOpen(true)
   }
   const focusOption = (index: number, direction = 1): void => {
