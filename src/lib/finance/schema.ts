@@ -1,8 +1,9 @@
 import { z } from 'zod'
 import { normalizeMoney, moneyToCents } from './money'
+import { isHistoryRecord } from './history'
 
 export const categories = { food: '餐飲', transport: '交通', gifts: '人情禮金', entertainment: '娛樂', family_support: '孝親費', daily_goods: '日用品', telecom: '通訊費', sports_leisure: '運動休閒', healthcare: '醫療保健' } as const
-export const accounts = { cathay: '國泰', ctbc: '中國信託' } as const
+export const accounts = { cathay: '國泰', ctbc: '中國信託', cash: '現金錢包' } as const
 export const entityLabels = { income: '收入', expense: '支出', credit_card_transaction: '信用卡', cash_movement: '資金異動' } as const
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => { const d = new Date(`${value}T00:00:00Z`); return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value }, '日期不正確')
 const month = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/)
@@ -17,7 +18,7 @@ const uuid = z.string().uuid()
 const timestamp = z.string().datetime({ offset: true })
 
 const income = z.object({ receivedDate: date, incomeType: z.enum(['salary', 'other']), item: text, amount: positiveMoney, accountId: account, isRecurring: z.boolean(), notes }).strict()
-const expense = z.object({ expenseDate: date, categoryCode: category, item: text, personalAmount: money, paymentMethod: z.enum(['cash', 'bank_transfer', 'credit_card']), accountId: account.nullable(), isFixed: z.boolean(), notes, creditCardTransactionClientId: uuid.nullable() }).strict()
+const expense = z.object({ expenseDate: date, categoryCode: category, item: text, personalAmount: money, paymentMethod: z.enum(['cash', 'bank_transfer', 'credit_card']), accountId: z.enum(['cathay', 'ctbc', 'cash']).nullable(), isFixed: z.boolean(), notes, creditCardTransactionClientId: uuid.nullable() }).strict()
 const card = z.object({ cardId: z.literal('CUBE-9539'), purchaseDate: date, postingDate: date.nullable(), consumptionDate: date, statementMonth: month.nullable(), purpose: text, usageDate: date.nullable(), usageHours: money.nullable(), grossAmount: positiveMoney, reimbursementReceivedAmount: money, pointsOffsetAmount: z.literal('0.00'), personalAmount: money.nullable(), status: z.enum(['pending', 'settled', 'cancelled']), expenseClientId: uuid.nullable(), notes }).strict()
 const movement = z.object({ movementDate: date, accountId: account, movementType: z.enum(['credit_card_payment', 'family_advance_repayment']), amount: positiveMoney, balanceAfter: signedMoney.nullable(), notes, cardId: z.literal('CUBE-9539').nullable(), statementMonth: month.nullable() }).strict()
 
@@ -30,7 +31,8 @@ export const recordDataSchema = z.discriminatedUnion('entityType', [
   const invalid = (message: string): void => context.addIssue({ code: z.ZodIssueCode.custom, message })
   if (record.entityType === 'expense') {
     const p = record.payload
-    if (p.paymentMethod === 'credit_card' ? !p.creditCardTransactionClientId : !p.accountId || p.creditCardTransactionClientId !== null) invalid('請確認支付帳戶與信用卡連結')
+    if (p.paymentMethod !== 'credit_card' && (!p.accountId || p.creditCardTransactionClientId !== null)) invalid('請確認支付帳戶與信用卡連結')
+    if (p.accountId === 'cash' && p.paymentMethod !== 'cash') invalid('現金錢包只能搭配現金付款')
     if (p.paymentMethod !== 'credit_card' && moneyToCents(p.personalAmount) === 0) invalid('現金或轉帳支出必須大於零')
   }
   if (record.entityType === 'credit_card_transaction') {
@@ -43,6 +45,10 @@ export const recordDataSchema = z.discriminatedUnion('entityType', [
 })
 
 export type RecordData = z.infer<typeof recordDataSchema>
+export function usesCashWallet(record: RecordData): boolean { return record.entityType === 'expense' && record.payload.accountId === 'cash' }
+// The existing exchange v1 accepts bank accounts only. Keep local wallet support
+// separate until both ends explicitly agree on the next exchange contract.
+export const exchangeRecordSchema = recordDataSchema.refine((record) => !usesCashWallet(record), 'Excel 交換第一版尚未支援現金錢包，紀錄保留待同步')
 export const changeSchema = z.object({ changeId: uuid, clientId: uuid, clientRevision: z.number().int().min(1), baseMasterRevision: z.number().int().min(1).nullable(), baseMasterHash: z.string().regex(/^sha256:[a-f0-9]{64}$/).nullable(), operation: z.enum(['upsert', 'delete']), clientCreatedAt: timestamp, clientUpdatedAt: timestamp, deletedAt: timestamp.nullable() }).strict()
 export type Change = z.infer<typeof changeSchema> & RecordData
 export const exportSchema = z.object({ schemaVersion: z.literal(1), fileType: z.literal('finance-changes'), appId: z.literal('riyue'), datasetId: uuid, batchId: uuid, exportedAt: timestamp, timezone: z.literal('Asia/Taipei'), records: z.array(z.unknown()).max(1000) }).strict()
@@ -58,7 +64,7 @@ export const returnSchema = z.object({ schemaVersion: z.literal(1), fileType: z.
 export type ReturnFile = z.infer<typeof returnSchema>
 export type SyncResult = z.infer<typeof resultSchema>
 
-export type FinanceRecord = RecordData & { id: string; revision: number; exportedRevision: number; syncedRevision: number; syncError: string | null; deleted: boolean; createdAt: string; updatedAt: string; changeId: string; masterRevision: number | null; masterHash: string | null; recordedDate: string | null; serverShadow: unknown; sourceRefs: unknown }
+export type FinanceRecord = RecordData & { id: string; localCategoryId?: string | null; revision: number; exportedRevision: number; syncedRevision: number; syncError: string | null; deleted: boolean; createdAt: string; updatedAt: string; changeId: string; masterRevision: number | null; masterHash: string | null; recordedDate: string | null; serverShadow: unknown; sourceRefs: unknown }
 export type FinanceExport = Omit<z.infer<typeof exportSchema>, 'records'> & { records: Change[] }
 
 export function recordDate(record: RecordData): string {
@@ -80,7 +86,7 @@ export function recordAmount(record: RecordData): string {
   return record.payload.amount
 }
 
-export function validateLinks(records: Array<RecordData & { id: string; deleted?: boolean }>): void {
+export function validateLinks(records: Array<RecordData & { id: string; deleted?: boolean; sourceRefs?: unknown }>): void {
   const active = records.filter((record) => !record.deleted)
   for (const record of active) {
     if (record.entityType === 'credit_card_transaction' && record.payload.status === 'settled') {
@@ -88,6 +94,7 @@ export function validateLinks(records: Array<RecordData & { id: string; deleted?
       if (!expenseRecord || expenseRecord.entityType !== 'expense' || expenseRecord.payload.creditCardTransactionClientId !== record.id || expenseRecord.payload.personalAmount !== record.payload.personalAmount || expenseRecord.payload.expenseDate !== record.payload.consumptionDate || expenseRecord.payload.paymentMethod !== 'credit_card') throw new Error('信用卡結算與支出必須雙向連結、金額及消費日一致')
     }
     if (record.entityType === 'expense' && record.payload.paymentMethod === 'credit_card') {
+      if (!record.payload.creditCardTransactionClientId && isHistoryRecord(record)) continue
       const cardRecord = active.find((entry) => entry.id === record.payload.creditCardTransactionClientId)
       if (!cardRecord || cardRecord.entityType !== 'credit_card_transaction' || cardRecord.payload.status !== 'settled' || cardRecord.payload.expenseClientId !== record.id) throw new Error('刷卡支出必須連結唯一的已結算交易')
     }

@@ -1,0 +1,566 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-13T08:05:36Z",
+  "title": "Design System: 日隅",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "暖珊瑚",
+        "tonalRamp": [
+          "oklch(15.00% 0.11925 30.40)",
+          "oklch(26.43% 0.11925 30.40)",
+          "oklch(37.86% 0.11925 30.40)",
+          "oklch(49.29% 0.11925 30.40)",
+          "oklch(60.71% 0.11925 30.40)",
+          "oklch(72.14% 0.11925 30.40)",
+          "oklch(83.57% 0.11925 30.40)",
+          "oklch(95.00% 0.11925 30.40)"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "深珊瑚",
+        "tonalRamp": [
+          "oklch(15.00% 0.12737 28.62)",
+          "oklch(26.43% 0.12737 28.62)",
+          "oklch(37.86% 0.12737 28.62)",
+          "oklch(49.29% 0.12737 28.62)",
+          "oklch(60.71% 0.12737 28.62)",
+          "oklch(72.14% 0.12737 28.62)",
+          "oklch(83.57% 0.12737 28.62)",
+          "oklch(95.00% 0.12737 28.62)"
+        ]
+      },
+      "accent-text": {
+        "role": "primary",
+        "displayName": "珊瑚棕",
+        "tonalRamp": [
+          "oklch(15.00% 0.10351 30.71)",
+          "oklch(26.43% 0.10351 30.71)",
+          "oklch(37.86% 0.10351 30.71)",
+          "oklch(49.29% 0.10351 30.71)",
+          "oklch(60.71% 0.10351 30.71)",
+          "oklch(72.14% 0.10351 30.71)",
+          "oklch(83.57% 0.10351 30.71)",
+          "oklch(95.00% 0.10351 30.71)"
+        ]
+      },
+      "sage": {
+        "role": "secondary",
+        "displayName": "鼠尾草綠",
+        "tonalRamp": [
+          "oklch(15.00% 0.03549 137.10)",
+          "oklch(26.43% 0.03549 137.10)",
+          "oklch(37.86% 0.03549 137.10)",
+          "oklch(49.29% 0.03549 137.10)",
+          "oklch(60.71% 0.03549 137.10)",
+          "oklch(72.14% 0.03549 137.10)",
+          "oklch(83.57% 0.03549 137.10)",
+          "oklch(95.00% 0.03549 137.10)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "紙張米白",
+        "tonalRamp": [
+          "oklch(15.00% 0.00925 62.59)",
+          "oklch(26.43% 0.00925 62.59)",
+          "oklch(37.86% 0.00925 62.59)",
+          "oklch(49.29% 0.00925 62.59)",
+          "oklch(60.71% 0.00925 62.59)",
+          "oklch(72.14% 0.00925 62.59)",
+          "oklch(83.57% 0.00925 62.59)",
+          "oklch(95.00% 0.00925 62.59)"
+        ]
+      },
+      "page-sage": {
+        "role": "neutral",
+        "displayName": "霧葉底色",
+        "tonalRamp": [
+          "oklch(15.00% 0.01015 131.36)",
+          "oklch(26.43% 0.01015 131.36)",
+          "oklch(37.86% 0.01015 131.36)",
+          "oklch(49.29% 0.01015 131.36)",
+          "oklch(60.71% 0.01015 131.36)",
+          "oklch(72.14% 0.01015 131.36)",
+          "oklch(83.57% 0.01015 131.36)",
+          "oklch(95.00% 0.01015 131.36)"
+        ]
+      },
+      "page-sky": {
+        "role": "neutral",
+        "displayName": "淡天空底色",
+        "tonalRamp": [
+          "oklch(15.00% 0.00856 247.91)",
+          "oklch(26.43% 0.00856 247.91)",
+          "oklch(37.86% 0.00856 247.91)",
+          "oklch(49.29% 0.00856 247.91)",
+          "oklch(60.71% 0.00856 247.91)",
+          "oklch(72.14% 0.00856 247.91)",
+          "oklch(83.57% 0.00856 247.91)",
+          "oklch(95.00% 0.00856 247.91)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "暖白表面",
+        "tonalRamp": [
+          "oklch(15.00% 0.00450 78.30)",
+          "oklch(26.43% 0.00450 78.30)",
+          "oklch(37.86% 0.00450 78.30)",
+          "oklch(49.29% 0.00450 78.30)",
+          "oklch(60.71% 0.00450 78.30)",
+          "oklch(72.14% 0.00450 78.30)",
+          "oklch(83.57% 0.00450 78.30)",
+          "oklch(95.00% 0.00450 78.30)"
+        ]
+      },
+      "surface-inset": {
+        "role": "neutral",
+        "displayName": "內嵌紙面",
+        "tonalRamp": [
+          "oklch(15.00% 0.01099 63.36)",
+          "oklch(26.43% 0.01099 63.36)",
+          "oklch(37.86% 0.01099 63.36)",
+          "oklch(49.29% 0.01099 63.36)",
+          "oklch(60.71% 0.01099 63.36)",
+          "oklch(72.14% 0.01099 63.36)",
+          "oklch(83.57% 0.01099 63.36)",
+          "oklch(95.00% 0.01099 63.36)"
+        ]
+      },
+      "selected": {
+        "role": "neutral",
+        "displayName": "選取紙面",
+        "tonalRamp": [
+          "oklch(15.00% 0.02464 57.66)",
+          "oklch(26.43% 0.02464 57.66)",
+          "oklch(37.86% 0.02464 57.66)",
+          "oklch(49.29% 0.02464 57.66)",
+          "oklch(60.71% 0.02464 57.66)",
+          "oklch(72.14% 0.02464 57.66)",
+          "oklch(83.57% 0.02464 57.66)",
+          "oklch(95.00% 0.02464 57.66)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "墨褐",
+        "tonalRamp": [
+          "oklch(15.00% 0.00691 48.47)",
+          "oklch(26.43% 0.00691 48.47)",
+          "oklch(37.86% 0.00691 48.47)",
+          "oklch(49.29% 0.00691 48.47)",
+          "oklch(60.71% 0.00691 48.47)",
+          "oklch(72.14% 0.00691 48.47)",
+          "oklch(83.57% 0.00691 48.47)",
+          "oklch(95.00% 0.00691 48.47)"
+        ]
+      },
+      "heading": {
+        "role": "neutral",
+        "displayName": "標題褐",
+        "tonalRamp": [
+          "oklch(15.00% 0.01674 48.20)",
+          "oklch(26.43% 0.01674 48.20)",
+          "oklch(37.86% 0.01674 48.20)",
+          "oklch(49.29% 0.01674 48.20)",
+          "oklch(60.71% 0.01674 48.20)",
+          "oklch(72.14% 0.01674 48.20)",
+          "oklch(83.57% 0.01674 48.20)",
+          "oklch(95.00% 0.01674 48.20)"
+        ]
+      },
+      "body-text": {
+        "role": "neutral",
+        "displayName": "內容褐",
+        "tonalRamp": [
+          "oklch(15.00% 0.01500 50.99)",
+          "oklch(26.43% 0.01500 50.99)",
+          "oklch(37.86% 0.01500 50.99)",
+          "oklch(49.29% 0.01500 50.99)",
+          "oklch(60.71% 0.01500 50.99)",
+          "oklch(72.14% 0.01500 50.99)",
+          "oklch(83.57% 0.01500 50.99)",
+          "oklch(95.00% 0.01500 50.99)"
+        ]
+      },
+      "secondary-text": {
+        "role": "neutral",
+        "displayName": "次要褐",
+        "tonalRamp": [
+          "oklch(15.00% 0.01458 56.06)",
+          "oklch(26.43% 0.01458 56.06)",
+          "oklch(37.86% 0.01458 56.06)",
+          "oklch(49.29% 0.01458 56.06)",
+          "oklch(60.71% 0.01458 56.06)",
+          "oklch(72.14% 0.01458 56.06)",
+          "oklch(83.57% 0.01458 56.06)",
+          "oklch(95.00% 0.01458 56.06)"
+        ]
+      },
+      "muted-text": {
+        "role": "neutral",
+        "displayName": "淡褐",
+        "tonalRamp": [
+          "oklch(15.00% 0.02181 54.94)",
+          "oklch(26.43% 0.02181 54.94)",
+          "oklch(37.86% 0.02181 54.94)",
+          "oklch(49.29% 0.02181 54.94)",
+          "oklch(60.71% 0.02181 54.94)",
+          "oklch(72.14% 0.02181 54.94)",
+          "oklch(83.57% 0.02181 54.94)",
+          "oklch(95.00% 0.02181 54.94)"
+        ]
+      },
+      "field-text": {
+        "role": "neutral",
+        "displayName": "欄位褐",
+        "tonalRamp": [
+          "oklch(15.00% 0.01801 54.65)",
+          "oklch(26.43% 0.01801 54.65)",
+          "oklch(37.86% 0.01801 54.65)",
+          "oklch(49.29% 0.01801 54.65)",
+          "oklch(60.71% 0.01801 54.65)",
+          "oklch(72.14% 0.01801 54.65)",
+          "oklch(83.57% 0.01801 54.65)",
+          "oklch(95.00% 0.01801 54.65)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "紙邊",
+        "tonalRamp": [
+          "oklch(15.00% 0.01889 62.44)",
+          "oklch(26.43% 0.01889 62.44)",
+          "oklch(37.86% 0.01889 62.44)",
+          "oklch(49.29% 0.01889 62.44)",
+          "oklch(60.71% 0.01889 62.44)",
+          "oklch(72.14% 0.01889 62.44)",
+          "oklch(83.57% 0.01889 62.44)",
+          "oklch(95.00% 0.01889 62.44)"
+        ]
+      },
+      "field-border": {
+        "role": "neutral",
+        "displayName": "欄位邊線",
+        "tonalRamp": [
+          "oklch(15.00% 0.01897 62.43)",
+          "oklch(26.43% 0.01897 62.43)",
+          "oklch(37.86% 0.01897 62.43)",
+          "oklch(49.29% 0.01897 62.43)",
+          "oklch(60.71% 0.01897 62.43)",
+          "oklch(72.14% 0.01897 62.43)",
+          "oklch(83.57% 0.01897 62.43)",
+          "oklch(95.00% 0.01897 62.43)"
+        ]
+      },
+      "danger-surface": {
+        "role": "neutral",
+        "displayName": "錯誤淡底",
+        "tonalRamp": [
+          "oklch(15.00% 0.01678 31.08)",
+          "oklch(26.43% 0.01678 31.08)",
+          "oklch(37.86% 0.01678 31.08)",
+          "oklch(49.29% 0.01678 31.08)",
+          "oklch(60.71% 0.01678 31.08)",
+          "oklch(72.14% 0.01678 31.08)",
+          "oklch(83.57% 0.01678 31.08)",
+          "oklch(95.00% 0.01678 31.08)"
+        ]
+      },
+      "danger-text": {
+        "role": "neutral",
+        "displayName": "錯誤深褐",
+        "tonalRamp": [
+          "oklch(15.00% 0.12472 30.05)",
+          "oklch(26.43% 0.12472 30.05)",
+          "oklch(37.86% 0.12472 30.05)",
+          "oklch(49.29% 0.12472 30.05)",
+          "oklch(60.71% 0.12472 30.05)",
+          "oklch(72.14% 0.12472 30.05)",
+          "oklch(83.57% 0.12472 30.05)",
+          "oklch(95.00% 0.12472 30.05)"
+        ]
+      },
+      "warning-surface": {
+        "role": "neutral",
+        "displayName": "待處理淡底",
+        "tonalRamp": [
+          "oklch(15.00% 0.02355 88.23)",
+          "oklch(26.43% 0.02355 88.23)",
+          "oklch(37.86% 0.02355 88.23)",
+          "oklch(49.29% 0.02355 88.23)",
+          "oklch(60.71% 0.02355 88.23)",
+          "oklch(72.14% 0.02355 88.23)",
+          "oklch(83.57% 0.02355 88.23)",
+          "oklch(95.00% 0.02355 88.23)"
+        ]
+      },
+      "warning-text": {
+        "role": "neutral",
+        "displayName": "待處理深褐",
+        "tonalRamp": [
+          "oklch(15.00% 0.08761 80.40)",
+          "oklch(26.43% 0.08761 80.40)",
+          "oklch(37.86% 0.08761 80.40)",
+          "oklch(49.29% 0.08761 80.40)",
+          "oklch(60.71% 0.08761 80.40)",
+          "oklch(72.14% 0.08761 80.40)",
+          "oklch(83.57% 0.08761 80.40)",
+          "oklch(95.00% 0.08761 80.40)"
+        ]
+      },
+      "success-surface": {
+        "role": "neutral",
+        "displayName": "核對淡綠底",
+        "tonalRamp": [
+          "oklch(15.00% 0.01344 134.90)",
+          "oklch(26.43% 0.01344 134.90)",
+          "oklch(37.86% 0.01344 134.90)",
+          "oklch(49.29% 0.01344 134.90)",
+          "oklch(60.71% 0.01344 134.90)",
+          "oklch(72.14% 0.01344 134.90)",
+          "oklch(83.57% 0.01344 134.90)",
+          "oklch(95.00% 0.01344 134.90)"
+        ]
+      },
+      "success-text": {
+        "role": "neutral",
+        "displayName": "核對深綠字",
+        "tonalRamp": [
+          "oklch(15.00% 0.06517 143.85)",
+          "oklch(26.43% 0.06517 143.85)",
+          "oklch(37.86% 0.06517 143.85)",
+          "oklch(49.29% 0.06517 143.85)",
+          "oklch(60.71% 0.06517 143.85)",
+          "oklch(72.14% 0.06517 143.85)",
+          "oklch(83.57% 0.06517 143.85)",
+          "oklch(95.00% 0.06517 143.85)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline-mobile": {
+        "displayName": "窄版頁面標題",
+        "purpose": "記帳／行事曆頁短標題；目前系統無襯線堆疊。"
+      },
+      "headline-desktop": {
+        "displayName": "桌面頁面標題",
+        "purpose": "sm 起的記帳／行事曆短標題。"
+      },
+      "section-title": {
+        "displayName": "區塊標題",
+        "purpose": "使用 18px 的工作區區塊。"
+      },
+      "workspace-body": {
+        "displayName": "工作區內容",
+        "purpose": "PersonalShell 下的系統字體內容。"
+      },
+      "portal-body": {
+        "displayName": "Portal 內容",
+        "purpose": "掛在 body 的彈窗／選單繼承 Quicksand、Noto Sans TC。"
+      },
+      "modal-title": {
+        "displayName": "彈窗標題",
+        "purpose": "實際 computed text-xl 為 24px，非 Tailwind 預設 20px。"
+      },
+      "field-label": {
+        "displayName": "表單標籤",
+        "purpose": "Portal 表單的 14px 標籤。"
+      },
+      "source-value": {
+        "displayName": "來源明細數值",
+        "purpose": "16px、600 字重、28px 行高的來源數值。"
+      },
+      "caption": {
+        "displayName": "輔助資訊",
+        "purpose": "現有 12px 說明；關鍵來源與日期偏小仍待修正。"
+      }
+    },
+    "shadows": [
+      {
+        "name": "modal",
+        "value": "0 24px 80px rgba(74,55,43,0.22)",
+        "purpose": "暫時彈窗表面。"
+      },
+      {
+        "name": "select",
+        "value": "0 16px 48px rgba(74,55,43,0.18)",
+        "purpose": "PersonalSelect 浮動面板。"
+      },
+      {
+        "name": "date-picker",
+        "value": "0 18px 60px rgba(74,55,43,0.2)",
+        "purpose": "PersonalDatePicker 面板。"
+      },
+      {
+        "name": "mobile-nav",
+        "value": "0 18px 48px rgba(112,82,62,0.14)",
+        "purpose": "固定手機導覽。"
+      },
+      {
+        "name": "calendar-surface",
+        "value": "0 16px 44px rgba(112,82,62,0.06)",
+        "purpose": "既有行事曆低強度卡片陰影。"
+      },
+      {
+        "name": "sidebar",
+        "value": "10px 0 32px rgba(112,82,62,0.06)",
+        "purpose": "既有桌面側欄邊界。"
+      }
+    ],
+    "motion": [
+      {
+        "name": "sidebar-expand",
+        "value": "0.34s",
+        "purpose": "PersonalShell 的 width 動畫；目前未有局部 reduced-motion 分支。"
+      },
+      {
+        "name": "sidebar-label",
+        "value": "0.20s",
+        "purpose": "側欄導覽文字，品牌文字另使用 0.22s。"
+      },
+      {
+        "name": "sidebar-ease",
+        "value": "power2.out",
+        "purpose": "現有 GSAP easing 名稱，並非 CSS easing 字串。"
+      },
+      {
+        "name": "control-transition",
+        "value": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "已安裝 Tailwind theme 的預設 transition，用於已宣告 transition 的控制。"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "40rem"
+      },
+      {
+        "name": "lg",
+        "value": "64rem"
+      },
+      {
+        "name": "xl",
+        "value": "80rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "主要操作",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "現有行事曆新增操作；白字對比仍待修正。",
+      "html": "<button class=\"ds-primary\" type=\"button\">＋新增行程</button>",
+      "css": ".ds-primary{background:#e98a7a;color:#fff;border:0;border-radius:16px;padding:12px 20px;font:700 14px/20px ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\";box-shadow:0 6px 16px rgba(233,138,122,.16);transition:background-color 150ms cubic-bezier(.4,0,.2,1)}.ds-primary:hover{background:#d97568}.ds-primary:focus-visible{outline:auto}.ds-primary:disabled{opacity:.5}"
+    },
+    {
+      "name": "次要操作",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "記帳設定等低強度操作，暖白底與細框。",
+      "html": "<button class=\"ds-secondary\" type=\"button\">記帳設定</button>",
+      "css": ".ds-secondary{background:#fffdfa;color:#a85b4e;border:1px solid #eaded4;border-radius:16px;padding:12px 20px;font:700 14px/20px ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"}.ds-secondary:focus-visible{outline:auto}.ds-secondary:disabled{opacity:.5}"
+    },
+    {
+      "name": "交易列操作",
+      "kind": "button",
+      "refersTo": "button-transaction",
+      "description": "編輯、查看來源、複製等交易操作，有完整 hover／active／focus 回饋。",
+      "html": "<button class=\"ds-transaction\" type=\"button\">查看來源</button>",
+      "css": ".ds-transaction{display:inline-flex;min-height:44px;align-items:center;justify-content:center;cursor:pointer;border:1px solid #e3cfc0;border-radius:12px;background:#faf3ed;color:#795747;padding:8px 16px;font:600 14px/20px ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\";box-shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px -1px rgba(0,0,0,.1);transition:background-color 150ms cubic-bezier(.4,0,.2,1),border-color 150ms cubic-bezier(.4,0,.2,1)}.ds-transaction:hover{border-color:#cda58e;background:#f3e5d9}.ds-transaction:active{background:#ead8c8}.ds-transaction:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px #b7655a}"
+    },
+    {
+      "name": "輸入欄位",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "PersonalFinance 表單的標籤與欄位，焦點使用珊瑚細框和淡 ring。",
+      "html": "<label class=\"ds-field\">項目<input class=\"ds-input\" type=\"text\" placeholder=\"例如：午餐\"></label>",
+      "css": ".ds-field{display:block;color:#695e57;font:600 14px/20px Quicksand, \"Noto Sans TC\", sans-serif}.ds-input{display:block;margin-top:8px;min-width:0;width:100%;height:44px;padding:0 12px;border:1px solid #e5d9cf;border-radius:12px;background:#fffdfa;color:#695e57;font:400 14px/20px Quicksand, \"Noto Sans TC\", sans-serif;outline:none}.ds-input:focus{border-color:#d97568;box-shadow:0 0 0 4px rgba(233,138,122,.15)}.ds-input:disabled{opacity:.5}"
+    },
+    {
+      "name": "下拉觸發器",
+      "kind": "custom",
+      "refersTo": "select-trigger",
+      "description": "PersonalSelect 的靜態觸發器示例；真實搜尋、複選與鍵盤行為由 React 元件提供。",
+      "html": "<button class=\"ds-select\" type=\"button\" aria-label=\"付款帳戶\"><span>現金錢包</span><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button>",
+      "css": ".ds-select{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;width:100%;border:1px solid #e5d9cf;border-radius:16px;padding:10px 12px;background:#fffdfa;color:#695e57;text-align:left;font:500 14px/20px Quicksand, \"Noto Sans TC\", sans-serif;outline:none;transition:border-color 150ms cubic-bezier(.4,0,.2,1)}.ds-select svg{width:16px;height:16px;opacity:.7}.ds-select:hover{border-color:#d9a59a}.ds-select:focus-visible{border-color:#d97568;box-shadow:0 0 0 4px rgba(233,138,122,.15)}.ds-select:disabled{opacity:.5;cursor:not-allowed}"
+    },
+    {
+      "name": "導覽項目",
+      "kind": "nav",
+      "refersTo": "nav-active",
+      "description": "已選取的桌面主要導覽；URL 僅作靜態展示，沒有新增子路由。",
+      "html": "<a class=\"ds-nav\" href=\"/dashboard/finance\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 6.5V5a2 2 0 0 1 2-2h12v4M4 6.5h15a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H6a2 2 0 0 1-2-2v-12ZM20 11h-5v5h5M17.5 13.5h.01\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg><span>記帳</span></a>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:#f6e5d9;color:#a85b4e;text-decoration:none;font:600 14px/20px ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\";transition:background-color 150ms cubic-bezier(.4,0,.2,1)}.ds-nav svg{width:20px;height:20px;flex-shrink:0}.ds-nav:focus-visible{outline:auto}"
+    },
+    {
+      "name": "標籤",
+      "kind": "chip",
+      "refersTo": "tag-unselected",
+      "description": "PersonalTagPicker 未選／已選狀態；選中暖珊瑚僅示例，真實色彩取 tag.color。",
+      "html": "<div class=\"ds-tags\"><button class=\"ds-tag\" type=\"button\" aria-pressed=\"false\">日常</button><button class=\"ds-tag ds-tag-selected\" type=\"button\" aria-pressed=\"true\">工作<span aria-hidden=\"true\">×</span></button></div>",
+      "css": ".ds-tags{display:flex;flex-wrap:wrap;gap:8px}.ds-tag{display:inline-flex;align-items:center;gap:6px;border:1px solid #eaded4;border-radius:9999px;padding:6px 12px;background:#fffdfa;color:#776e68;font:700 12px/16px Quicksand, \"Noto Sans TC\", sans-serif;transition:border-color 150ms cubic-bezier(.4,0,.2,1)}.ds-tag:not(.ds-tag-selected):hover{border-color:#d9a59a}.ds-tag-selected{border-color:transparent;background:#e98a7a;color:#fff}.ds-tag:focus-visible{outline:auto}.ds-tag span{font-size:14px;font-weight:400;line-height:1}"
+    },
+    {
+      "name": "內容卡片",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "記帳的平實卡片，暖白底、紙邊細框，沒有資料或操作副作用。",
+      "html": "<section class=\"ds-card\"><h2>常用模板</h2><p>確認內容後，再儲存這次記帳。</p></section>",
+      "css": ".ds-card{border:1px solid #eaded4;border-radius:24px;padding:20px;background:#fffdfa;color:#2e2a28;font:400 16px/24px ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"}.ds-card h2{margin:0;font-size:16px;line-height:24px;font-weight:700}.ds-card p{margin:12px 0 0;color:#8d7f76;font-size:14px;line-height:20px}"
+    },
+    {
+      "name": "彈窗表面",
+      "kind": "custom",
+      "refersTo": "modal",
+      "description": "PersonalModal 的靜態表面預覽；焦點限制、busy 與取消保護由實際元件提供。",
+      "html": "<section class=\"ds-modal\" aria-label=\"彈窗表面預覽\"><div class=\"ds-modal-head\"><h2>新增記帳</h2><button type=\"button\" aria-label=\"關閉預覽\">×</button></div><p>這裡顯示表單內容與操作結果。</p></section>",
+      "css": ".ds-modal{background:#fffdfa;color:#4a413c;border:1px solid #eaded4;border-radius:32px;padding:20px;box-shadow:0 24px 80px rgba(74,55,43,.22);font:400 16px/24px Quicksand, \"Noto Sans TC\", sans-serif}.ds-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.ds-modal h2{margin:0;font-size:24px;line-height:33.6px;font-weight:700}.ds-modal-head button{border:0;border-radius:9999px;background:#faf3ed;color:#8d7f76;padding:6px 12px;font:400 18px/28px Quicksand, \"Noto Sans TC\", sans-serif}.ds-modal-head button:hover{background:#f6e5d9}.ds-modal-head button:focus-visible{outline:auto}.ds-modal p{margin:0}@media(min-width:640px){.ds-modal{padding:28px}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "日常的私人角落",
+    "overview": "日隅以溫暖、安靜、可掌控的私人空間整理日常。紙張米白與低飽和色彩承接內容，暖珊瑚引導操作，鼠尾草綠提供品牌陪襯。圓角親切，文字與狀態清楚；畫面的情緒不應蓋過使用者要完成的事情。\n\n元件共同氣質是「柔和但操作明確」。日常卡片以底色與邊框分組，彈窗和選單以陰影浮起。字體、顏色、尺寸與層級擷取自現行實作；意象、色名及深度語言由使用者於 2026-10-13 確認。",
+    "keyCharacteristics": [
+      "溫暖的紙張底色、珊瑚重點、植物色陪襯。",
+      "平實的內容表面，浮起的暫時操作面板。",
+      "圓角、留白、線條圖示與明確的狀態文字。",
+      "桌面側欄與手機底部導覽共同支持日常操作。"
+    ],
+    "rules": [
+      {
+        "name": "State-with-Words",
+        "body": "色彩與明確狀態文字一起使用。珊瑚主操作不等於錯誤；黃色待對照不等於資料損毀；綠色總額一致不等於逐筆帳目已核實。",
+        "section": "colors"
+      },
+      {
+        "name": "Actual-Font",
+        "body": "保留目前頁面與 portal 的字體適用範圍；字體統一需另作明確修改。長中文說明使用自然字距，0.12em 的展示字距只用在已建立的短標題／品牌文字。",
+        "section": "typography"
+      },
+      {
+        "name": "Temporary-Lift",
+        "body": "強陰影集中在短暫操作層；日常資料卡依靠文字、間距、底色與細邊線分組，不為每個區塊增加浮起感。",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** 保持「日常的私人角落」與「柔和但操作明確」，讓內容與操作結果可理解。",
+      "**Do** 複用 PersonalSelect、PersonalDatePicker、PersonalModal 的既有行為，保留標籤、鍵盤焦點及狀態文字。",
+      "**Do** 依頁面實際字體範圍、響應式尺寸與色面設定延伸；需要統一時另作明確變更。",
+      "**Do** 在新增介面及修正時檢查文字對比與觸控尺寸；將 audit 不足列為待修正，不能把既有小字或低對比當成品質要求。",
+      "**Do** 將頁面策略與未完成能力寫在各頁規劃／產品文件，讓 DESIGN.md 專注於視覺系統。"
+    ],
+    "donts": [
+      "**Don't** 把舊 samurai／holo 全域 tokens 當作目前個人工作區的視覺權威。",
+      "**Don't** 改寫或變形既有日隅 Logo，加入品牌文件禁止的霓虹／全息效果。",
+      "**Don't** 只靠紅、黃、綠表示資料狀態或成功；總額相同不等於逐筆核實。",
+      "**Don't** 把 sidecar 合成色階、靜態元件預覽或未實作子選單寫成執行期已完成的功能。",
+      "**Don't** 把 Quicksand 視為所有 Dashboard 元件的現有字體，或把尚未測試的可及性能力寫成已通過。"
+    ]
+  }
+}
