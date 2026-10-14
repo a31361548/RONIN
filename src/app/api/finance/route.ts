@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { getAuthenticatedUser } from '@/lib/currentUser'
 import { prisma } from '@/lib/prisma'
 import { recordDataSchema, validateLinks } from '@/lib/finance/schema'
-import { jsonValue, serializeEntry } from '@/lib/finance/store'
+import { batchInfo, jsonValue, serializeEntry } from '@/lib/finance/store'
 import { nextReminder, readPreferences } from '@/lib/finance/preferences'
 import { recordDate } from '@/lib/finance/schema'
 import { taipeiDate } from '@/lib/finance/money'
@@ -18,9 +18,9 @@ export async function GET(): Promise<NextResponse> {
   const [entries, ledger, batches] = await Promise.all([
     prisma.financeEntry.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } }),
     prisma.financeLedger.findUnique({ where: { userId: user.id } }),
-    prisma.financeBatch.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' }, select: { id: true, createdAt: true, payload: true } }),
+    prisma.financeBatch.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' }, select: { id: true, createdAt: true, payload: true, receipts: true } }),
   ])
-  return NextResponse.json({ records: entries.map(serializeEntry), datasetId: ledger?.id ?? null, batches: batches.filter((batch) => typeof batch.payload === 'object' && batch.payload !== null && !Array.isArray(batch.payload) && batch.payload.fileType === 'finance-changes').slice(0, 20).map(({ id, createdAt }) => ({ id, createdAt })), historySummaries: historySummaries(batches.map((batch) => batch.payload)), preferences: readPreferences(ledger?.preferences), preferencesRevision: ledger?.preferencesRevision ?? 0 })
+  return NextResponse.json({ records: entries.map(serializeEntry), datasetId: ledger?.id ?? null, batches: batches.flatMap((batch) => { const info = batchInfo(batch); return info ? [info] : [] }), historySummaries: historySummaries(batches.map((batch) => batch.payload)), preferences: readPreferences(ledger?.preferences), preferencesRevision: ledger?.preferencesRevision ?? 0 })
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {

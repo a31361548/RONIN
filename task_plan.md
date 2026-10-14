@@ -1,5 +1,21 @@
 # 日隅記帳第一版
 
+## 2026-10-14｜建置、Next.js 安全升級與正式 Excel 接收
+- [x] 1. 核對官方最新穩定版、npm 中繼資料、安全公告與帳本端架構。
+- [x] 2. 修正 Next.js 非同步參數與升級必要依賴，完成正式建置。
+- [x] 3. 實作正式交換接收工具與現金相容規則，保留原帳本及唯一寫入原則。
+- [x] 4. 在測試副本驗證匯出、接收、回執、回匯、重送與衝突；回報可用範圍及回退。
+
+目前：本次修正完成。Next.js 16.4.0 完整 npm run build（含 Prisma／Turbopack）、Webpack、TypeScript、scoped ESLint 通過；NextAuth 4.24.15。合計 68 pass／0 fail／1 skip，含副本現金／收入／信用卡配對／異動與官方驗證；正式 Excel／DB bytes 未變。本機服務已恢復，桌面與 390×844 檢查完成，未提交帳務。操作／限制／回退見 docs/finance-exchange-v2.md、docs/next-finance-upgrade-notes.md。
+
+發布由使用者自行推 GitHub main，Vercel 自動同步。代理只修改、在 localhost 驗證並回報；此次未 commit／push／deploy。最後 npm latest 16.4.0，官方 10/14 修補仍只有預告；prod audit 剩 6 high／4 moderate／0 critical，不能宣稱完全無安全缺口。
+
+帳本端已確認：沒有既有 adapter；新工具採用正式 sync／validate 入口、明確 workbook/db、唯一寫入者確認及 Excel 持久對照。現金帳戶寫入付款帳戶，收入建立明細與歷史基線，不推算舊入帳日。
+
+已知錯誤：舊版清單頁同步 params 造成正式建置失敗；前次沙盒內建置有子程序與目錄權限限制。官方預告 10/14 新上游安全修補，需在完成升級時重新核對。
+
+驗證修正：ExcelJS 漏掉公式快取 0，改讀明確 XML 零值；測試用 monthly fixture 重建工作表，避免 splice 留下舊表頭；API 來源 ID 以 sourceRefs.masterId 保存、無待同步回應 409，修正測試斷言。CIM 唯讀受沙盒限制，經核准讀取後確認 1026 的 node 28300／17380 均指向本專案。沒有修改正式帳目。
+
 ## 帳目可讀性、Excel 核對與同步入口
 - [x] 1. 放大來源明細；匯入／同步置頂；月彙總改為支出核對。
 - [x] 2. 收入同月／同分類／同金額提示核對；確認已包含或另一筆收入，保存註解與可撤回標記。

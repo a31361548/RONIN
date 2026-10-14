@@ -24,7 +24,7 @@ export function PersonalConfirmDialog({ open, title, description, confirmLabel =
         <p id="personal-confirm-description" className="mt-2 text-sm leading-6 text-[#776e68]">{description}</p>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button type="button" onClick={onCancel} disabled={busy} autoFocus className="rounded-2xl border border-[#eaded4] px-4 py-3 text-sm font-bold text-[#776e68] transition hover:bg-[#faf3ed] disabled:cursor-not-allowed disabled:opacity-50">先不要</button>
-          <button type="button" onClick={onConfirm} disabled={busy} className="rounded-2xl bg-[#d97568] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#bf5d52] disabled:cursor-wait disabled:opacity-60">{busy ? '刪除中⋯' : confirmLabel}</button>
+          <button type="button" onClick={onConfirm} disabled={busy} className="rounded-2xl bg-[#ad5146] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#934237] disabled:cursor-wait disabled:opacity-60">{busy ? '刪除中⋯' : confirmLabel}</button>
         </div>
     </PersonalModal>
   )

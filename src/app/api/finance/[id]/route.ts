@@ -5,9 +5,9 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/currentUser'
 import { recordDataSchema, resultSchema, validateLinks } from '@/lib/finance/schema'
-import { jsonValue, serializeEntry } from '@/lib/finance/store'
+import { batchInfo, jsonValue, serializeEntry } from '@/lib/finance/store'
 import { historySummaries, isHistoryRecord } from '@/lib/finance/history'
-import { incomeMatchesSummary, incomeReview, incomeSummary } from '@/lib/finance/income-review'
+import { incomeMatchesSummary, incomeReview, incomeReviewBlockReason, incomeSummary } from '@/lib/finance/income-review'
 
 const actionSchema = z.union([
   z.object({ action: z.enum(['delete', 'restore', 'keep-local', 'use-master', 'clear-income-review']), expectedRevision: z.number().int().min(1) }).strict(),
@@ -28,14 +28,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       if (isHistoryRecord(record)) throw new Error('Excel 歷史副本請在正式帳本修改後重新匯入，不能從網站標記正式刪除')
       const { action } = parsed.data
       if (action === 'income-included' || action === 'income-separate' || action === 'clear-income-review') {
-        if (record.entityType !== 'income' || record.deleted || record.serverShadow !== null || record.masterRevision !== null || record.exportedRevision > 0) throw new Error('只能核對尚未匯出的網站收入；已匯出或同步的紀錄請先核對既有批次')
+        if (record.entityType !== 'income' || record.deleted) throw new Error('只能核對未刪除的網站收入')
+        const reviewBatches = await tx.financeBatch.findMany({ where: { userId: user.id } })
+        const blocked = incomeReviewBlockReason(record, reviewBatches.flatMap((batch) => { const info = batchInfo(batch); return info ? [info] : [] }))
+        if (blocked) throw new Error(blocked)
         const source: Record<string, unknown> = record.sourceRefs && typeof record.sourceRefs === 'object' && !Array.isArray(record.sourceRefs) ? { ...record.sourceRefs } : {}
         if (action === 'clear-income-review') {
           if (!incomeReview(record)) throw new Error('沒有可撤回的收入核對')
           delete source.incomeReview
         } else {
           if (!('summaryHash' in parsed.data)) throw new Error('缺少收入核對資料')
-          const summaries = historySummaries((await tx.financeBatch.findMany({ where: { userId: user.id }, select: { payload: true } })).map((batch) => batch.payload))
+          const summaries = historySummaries(reviewBatches.map((batch) => batch.payload))
           const summary = incomeSummary(record, summaries)
           if (!summary || summary.sourceHash !== parsed.data.summaryHash) throw new Error('Excel 月收入已改變，請重新載入再核對')
           if (action === 'income-included' && !incomeMatchesSummary(record, summary)) throw new Error('收入分類或金額與 Excel 月收入不一致，不能確認為同一筆')
@@ -43,7 +46,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           if (action === 'income-included' && all.some((item) => item.id !== record.id && !item.deleted && incomeReview(item)?.decision === 'included' && item.entityType === 'income' && item.payload.incomeType === record.payload.incomeType && item.payload.receivedDate.slice(0, 7) === summary.month)) throw new Error('已有另一筆收入確認包含在這個月的同類收入，請先核對那筆紀錄')
           source.incomeReview = { decision: action === 'income-included' ? 'included' : 'separate', month: summary.month, summaryHash: summary.sourceHash, reviewedRevision: record.revision + 1, note: parsed.data.note, reviewedAt: new Date().toISOString() }
         }
-        const updated = await tx.financeEntry.updateMany({ where: { id: record.id, userId: user.id, revision: record.revision, changeId: record.changeId, exportedRevision: 0 }, data: { sourceRefs: jsonValue(source), revision: { increment: 1 }, changeId: randomUUID() } })
+        const updated = await tx.financeEntry.updateMany({ where: { id: record.id, userId: user.id, revision: record.revision, changeId: record.changeId, exportedRevision: record.exportedRevision }, data: { sourceRefs: jsonValue(source), revision: { increment: 1 }, changeId: randomUUID() } })
         if (updated.count !== 1) throw new Error('收入已被修改或匯出，請重新載入')
         return [serializeEntry(await tx.financeEntry.findUniqueOrThrow({ where: { id: record.id } }))]
       }

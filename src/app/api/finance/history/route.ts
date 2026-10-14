@@ -53,7 +53,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const summaries = historySummaries(batches.map((batch) => batch.payload))
       const groups = prepareHistory(workbook, user.id, preferences, effectiveMapping, entries, summaries)
       const previewHash = payloadHash({ fileHash: workbook.fileHash, mapping: effectiveMapping, preferences, entries: entries.map((e) => ({ id: e.id, revision: e.revision, changeId: e.changeId, deleted: e.deleted, sourceRefs: e.sourceRefs })).sort((a, b) => a.id.localeCompare(b.id)), summaries })
-      const preview: HistoryPreview = { fileName: workbook.fileName, fileHash: workbook.fileHash, previewHash, rows: groups.map(({ items: _items, summary: _summary, ...row }) => row), warnings: [...workbook.warnings, '缺少帳戶的支出需指定對照；分類與帳戶對照只影響網站副本。', '來源沒有逐筆收入，月彙總與網站逐筆收入分開顯示。', '未出現在本次檔案的舊資料會保留，不會推斷刪除。'], ...available, defaults: effectiveMapping, summaries: groups.flatMap((g) => g.summary ? [g.summary] : []) }
+      const preview: HistoryPreview = { fileName: workbook.fileName, fileHash: workbook.fileHash, previewHash, rows: groups.map(({ items: _items, summary: _summary, ...row }) => row), warnings: [...workbook.warnings, '缺少帳戶的支出需指定對照；分類與帳戶對照只影響網站副本。', workbook.rows.some((row) => row.sheet === '收入明細') ? '收入明細保留來源日期；月彙總另行核對，不重複加總。' : '來源沒有逐筆收入，月彙總與網站逐筆收入分開顯示。', '未出現在本次檔案的舊資料會保留，不會推斷刪除。'], ...available, defaults: effectiveMapping, summaries: groups.flatMap((g) => g.summary ? [g.summary] : []) }
       if (mode === 'preview') return preview
       const selected = keys.map((key) => groups.find((group) => group.key === key))
       if (selected.some((group) => !group || group.status === 'blocked' || group.status === 'needs_mapping')) throw new Error('選取資料尚未完成對照、有錯誤或來源已改變，請重新預覽')

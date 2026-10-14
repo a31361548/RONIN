@@ -9,10 +9,11 @@ import ItemForm from './ui/ItemForm'
 import ItemRow from './ui/ItemRow'
 import ListTitleEditor from './ui/ListTitleEditor'
 
-export default async function ListDetail({ params }: { params: { id: string } }): Promise<React.ReactElement> {
+export default async function ListDetail({ params }: { params: Promise<{ id: string }> }): Promise<React.ReactElement> {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) notFound()
-  const list = await prisma.list.findUnique({ where: { id: params.id }, include: { items: true } })
+  const { id } = await params
+  const list = await prisma.list.findUnique({ where: { id }, include: { items: true } })
   if (!list) notFound()
   const expanded = list.items.flatMap((item) => Array.from({ length: item.weight }, () => item.label))
   const hasItems = expanded.length > 0

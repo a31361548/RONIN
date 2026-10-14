@@ -46,12 +46,12 @@ export const recordDataSchema = z.discriminatedUnion('entityType', [
 
 export type RecordData = z.infer<typeof recordDataSchema>
 export function usesCashWallet(record: RecordData): boolean { return record.entityType === 'expense' && record.payload.accountId === 'cash' }
-// The existing exchange v1 accepts bank accounts only. Keep local wallet support
-// separate until both ends explicitly agree on the next exchange contract.
+// Keep legacy v1 immutable; wallet support is explicit in v2.
 export const exchangeRecordSchema = recordDataSchema.refine((record) => !usesCashWallet(record), 'Excel 交換第一版尚未支援現金錢包，紀錄保留待同步')
+export function exchangeSchema(version: 1 | 2): typeof recordDataSchema | typeof exchangeRecordSchema { return version === 1 ? exchangeRecordSchema : recordDataSchema }
 export const changeSchema = z.object({ changeId: uuid, clientId: uuid, clientRevision: z.number().int().min(1), baseMasterRevision: z.number().int().min(1).nullable(), baseMasterHash: z.string().regex(/^sha256:[a-f0-9]{64}$/).nullable(), operation: z.enum(['upsert', 'delete']), clientCreatedAt: timestamp, clientUpdatedAt: timestamp, deletedAt: timestamp.nullable() }).strict()
 export type Change = z.infer<typeof changeSchema> & RecordData
-export const exportSchema = z.object({ schemaVersion: z.literal(1), fileType: z.literal('finance-changes'), appId: z.literal('riyue'), datasetId: uuid, batchId: uuid, exportedAt: timestamp, timezone: z.literal('Asia/Taipei'), records: z.array(z.unknown()).max(1000) }).strict()
+export const exportSchema = z.object({ schemaVersion: z.union([z.literal(1), z.literal(2)]), fileType: z.literal('finance-changes'), appId: z.literal('riyue'), datasetId: uuid, batchId: uuid, exportedAt: timestamp, timezone: z.literal('Asia/Taipei'), records: z.array(z.unknown()).min(1).max(1000) }).strict()
 
 const issue = z.object({ code: z.string().min(1), field: z.string().nullable(), message: z.string().min(1) }).strict()
 export const resultSchema = z.object({
@@ -60,7 +60,7 @@ export const resultSchema = z.object({
   masterId: z.string().min(1).nullable(), masterRevision: z.number().int().min(1).nullable(), masterHash: z.string().regex(/^sha256:[a-f0-9]{64}$/).nullable(), recordedDate: date.nullable(), canonicalPayload: z.unknown().refine((value) => value !== undefined, '需明確提供 canonicalPayload 或 null'),
   errors: z.array(issue).max(50), warnings: z.array(issue).max(50),
 }).strict()
-export const returnSchema = z.object({ schemaVersion: z.literal(1), fileType: z.literal('finance-results'), appId: z.literal('riyue'), timezone: z.literal('Asia/Taipei'), datasetId: uuid, batchId: uuid, resultId: uuid, processedAt: timestamp, batchStatus: z.enum(['committed', 'rejected', 'recovery_required']), results: z.array(resultSchema).min(1).max(1000), masterChanges: z.array(z.unknown()).max(0), monthlySummaries: z.array(z.unknown()).max(0) }).strict()
+export const returnSchema = z.object({ schemaVersion: z.union([z.literal(1), z.literal(2)]), fileType: z.literal('finance-results'), appId: z.literal('riyue'), timezone: z.literal('Asia/Taipei'), datasetId: uuid, batchId: uuid, resultId: uuid, processedAt: timestamp, batchStatus: z.enum(['committed', 'rejected', 'recovery_required']), results: z.array(resultSchema).min(1).max(1000), masterChanges: z.array(z.unknown()).max(0), monthlySummaries: z.array(z.unknown()).max(0) }).strict()
 export type ReturnFile = z.infer<typeof returnSchema>
 export type SyncResult = z.infer<typeof resultSchema>
 
