@@ -84,7 +84,7 @@ export function FinanceHistoryImport({ preferences, onComplete }: { preferences:
   }
   return <>
     <button type="button" onClick={() => { reset(); setOpen(true) }} className={buttonClass}>匯入 Excel 帳目</button>
-    <PersonalModal open={open} title="匯入 Excel 帳目" busy={busy} onClose={() => setOpen(false)} className="max-w-4xl">
+    <PersonalModal surface="finance" open={open} title="匯入 Excel 帳目" busy={busy} onClose={() => setOpen(false)} className="max-w-4xl">
       <p className="text-sm leading-6 text-[#8d7f76]">選擇「財務投資總表.xlsx」。先確認分類與付款帳戶，再預覽及勾選匯入。原始 Excel 不會被修改，投資資料暫不匯入。</p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button type="button" disabled={busy} onClick={() => input.current?.click()} className={buttonClass}>{file ? '更換 Excel 檔案' : '選擇 Excel 檔案'}</button>

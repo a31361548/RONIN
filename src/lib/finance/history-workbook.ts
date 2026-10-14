@@ -18,9 +18,10 @@ class MappingRequired extends Error {
 }
 export const mappingSchema = z.object({ categories: z.record(z.string().max(80)), accounts: z.record(z.enum(['cathay', 'ctbc', 'cash', ''])), cards: z.record(z.enum(['CUBE-9539', ''])).optional() }).strict()
 const sheets: Record<string, string[]> = {
-  支出明細: ['日期', '月份', '類別', '項目', '金額', '支付方式', '是否固定支出', '備註', '資料ID', 'gross_amount', 'reimbursement_amount', 'points_offset_amount', 'credit_card_id', 'statement_month', 'structured_credit_card', '寫入日期'],
-  信用卡交易: ['信用卡交易ID', 'card_id', '卡名', '末四碼', '刷卡日期', '入帳日期', '實際刷卡金額', 'statement_month', '消費月份', '預訂用途', '預約使用日', '使用時數', '個人負擔', '他人分攤/實際回補', '狀態', '對應支出ID', '備註', '寫入日期'],
-  資金異動: ['資金異動ID', '異動日期', '帳戶', '異動類型', '金額', '異動後餘額', '所屬月份', '備註', '寫入日期'],
+  支出明細: ['日期', '月份', '類別', '項目', '金額', '支付方式', '是否固定支出', '備註', '資料ID', 'gross_amount', 'reimbursement_amount', 'points_offset_amount', 'credit_card_id', 'statement_month', 'structured_credit_card', '寫入日期', '付款帳戶'],
+  信用卡交易: ['信用卡交易ID', 'card_id', '卡名', '末四碼', '刷卡日期', '入帳日期', '實際刷卡金額', 'statement_month', '消費月份', '預訂用途', '預約使用日', '使用時數', '個人負擔', '他人分攤/實際回補', '狀態', '對應支出ID', '備註', '寫入日期', '實際消費日'],
+  資金異動: ['資金異動ID', '異動日期', '帳戶', '異動類型', '金額', '異動後餘額', '所屬月份', '備註', '寫入日期', 'card_id', 'statement_month'],
+  收入明細: ['收入ID', '入帳日期', '月份', '收入分類', '項目', '金額', '帳戶', '固定收入', '備註', '寫入日期'],
   月收支: ['月份', '薪水收入', '其他收入', '總收入', '固定支出', '變動支出', '備註', '寫入日期'],
 }
 // Check central-directory sizes before ExcelJS inflates an untrusted ZIP file.
@@ -51,17 +52,17 @@ export function checkWorkbookZip(buffer: Buffer): void {
   }
   if (offset !== end) throw new Error('Excel 壓縮檔目錄不完整')
 }
-function cellValue(value: ExcelJS.CellValue): Cell {
+function cellValue(value: ExcelJS.CellValue, cachedResult?: ExcelJS.CellValue): Cell {
   if (value === null || value === undefined) return null
   if (value instanceof Date) return value.toISOString().slice(0, 10)
   if (typeof value === 'string' || typeof value === 'boolean') return value
   if (typeof value === 'number') { if (!Number.isFinite(value)) throw new Error('數值不正確'); return value }
-  if ('formula' in value || 'sharedFormula' in value) { if (value.result === undefined) throw new Error('公式沒有快取結果，請先用 Excel 計算並儲存'); return cellValue(value.result) }
+  if ('formula' in value || 'sharedFormula' in value) { const result = value.result ?? cachedResult; if (result === undefined) throw new Error('公式沒有快取結果，請先用 Excel 計算並儲存'); return cellValue(result) }
   if ('richText' in value) return value.richText.map((part) => part.text).join('')
   if ('text' in value) return value.text
   throw new Error('儲存格含有 Excel 錯誤或不支援的內容')
 }
-const dateFields = new Set(['日期', '刷卡日期', '入帳日期', '預約使用日', '異動日期', '寫入日期'])
+const dateFields = new Set(['日期', '刷卡日期', '入帳日期', '預約使用日', '異動日期', '寫入日期', '實際消費日'])
 export function excelSerialDate(value: number, date1904: boolean): string {
   if (!Number.isFinite(value) || value < (date1904 ? 0 : 1) || !date1904 && Math.floor(value) === 60) throw new Error('Excel 日期序號不正確')
   const days = Math.floor(value) + (date1904 ? 1462 : value < 60 ? 1 : 0) - 25569
@@ -69,7 +70,7 @@ export function excelSerialDate(value: number, date1904: boolean): string {
   if (!Number.isFinite(d.getTime()) || d.getUTCFullYear() < 1 || d.getUTCFullYear() > 9999) throw new Error('Excel 日期超出範圍')
   return d.toISOString().slice(0, 10)
 }
-export async function readHistoryWorkbook(buffer: Buffer, fileName: string): Promise<HistoryWorkbook> {
+export async function loadFinanceWorkbook(buffer: Buffer): Promise<ExcelJS.Workbook> {
   checkWorkbookZip(buffer)
   // Some valid writers prefix the main SpreadsheetML namespace (e.g. x:sheet).
   // ExcelJS matches bare tag names. Normalize only that namespace, in memory.
@@ -101,6 +102,28 @@ export async function readHistoryWorkbook(buffer: Buffer, fileName: string): Pro
   const workbook = new ExcelJS.Workbook()
   const readable = normalized ? await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' }) : buffer
   await workbook.xlsx.load(readable as unknown as Parameters<typeof workbook.xlsx.load>[0])
+  // ExcelJS drops an explicit numeric zero formula cache when reading XLSX.
+  // Restore only literal <v>0</v>; absent caches remain an error.
+  const workbookXml = await zip.file('xl/workbook.xml')?.async('string') ?? ''
+  const relationshipXml = await zip.file('xl/_rels/workbook.xml.rels')?.async('string') ?? ''
+  const attributes = (xml: string): Record<string, string> => Object.fromEntries(Array.from(xml.matchAll(/([\w:.-]+)="([^"]*)"/g), (match) => [match[1], match[2].replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'")]))
+  const targets = new Map(Array.from(relationshipXml.matchAll(/<Relationship\b[^>]*\/>/g), (match) => { const value = attributes(match[0]); return [value.Id, value.Target] }))
+  for (const match of workbookXml.matchAll(/<sheet\b[^>]*\/>/g)) {
+    const values = attributes(match[0]), sheet = workbook.getWorksheet(values.name), target = targets.get(values['r:id'])
+    if (!sheet || !target || target.includes('..')) continue
+    const path = target.startsWith('/xl/') ? target.slice(1) : target.startsWith('xl/') ? target : `xl/${target}`
+    const content = await zip.file(path)?.async('string') ?? ''
+    for (const cellXml of content.matchAll(/<(?:[\w.-]+:)?c\b([^>]*?)>([\s\S]*?)<\/(?:[\w.-]+:)?c>/g)) {
+      if (!/<(?:[\w.-]+:)?f\b/.test(cellXml[2]) || !/<(?:[\w.-]+:)?v>0<\/(?:[\w.-]+:)?v>/.test(cellXml[2]) || attributes(cellXml[1]).t === 'str') continue
+      const address = attributes(cellXml[1]).r; if (!address || !/^[A-Z]+\d+$/.test(address)) continue
+      const cell = sheet.getCell(address), value = cell.value
+      if (typeof value === 'object' && value !== null && ('formula' in value || 'sharedFormula' in value) && value.result === undefined) cell.value = { ...value, result: 0 }
+    }
+  }
+  return workbook
+}
+export async function readHistoryWorkbook(buffer: Buffer, fileName: string): Promise<HistoryWorkbook> {
+  const workbook = await loadFinanceWorkbook(buffer)
   const rows: SourceRow[] = []; const warnings: string[] = []
   for (const sheet of workbook.worksheets) {
     const fields = sheets[sheet.name]
@@ -119,7 +142,7 @@ export async function readHistoryWorkbook(buffer: Buffer, fileName: string): Pro
       if (index === 1) return
       const values: Record<string, Cell> = {}
       for (const [field, column] of columns) {
-        try { const value = cellValue(row.getCell(column).value); values[field] = dateFields.has(field) && typeof value === 'number' ? excelSerialDate(value, Boolean(workbook.properties.date1904)) : value }
+        try { const cell = row.getCell(column), value = cellValue(cell.value, cell.result); values[field] = dateFields.has(field) && typeof value === 'number' ? excelSerialDate(value, Boolean(workbook.properties.date1904)) : value }
         catch (error) { values[field] = `#IMPORT_ERROR: ${error instanceof Error ? error.message : '儲存格錯誤'}` }
       }
       if (Object.values(values).every((value) => value === null || value === '')) return
@@ -161,17 +184,17 @@ export function historyId(userId: string, kind: string, masterId: string): strin
   const hash = createHash('sha256').update(`${userId}\0excel-history-v1\0${kind}\0${masterId}`).digest('hex')
   return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-5${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`
 }
-const accountName = (row: SourceRow): string => row.sheet === '支出明細' ? `未提供帳戶（${String(row.values['支付方式'])}）` : String(row.values['帳戶'] ?? '')
+const accountName = (row: SourceRow): string => row.sheet === '支出明細' ? String(row.values['付款帳戶'] || `未提供帳戶（${String(row.values['支付方式'])}）`) : String(row.values['帳戶'] ?? '')
 export function workbookMappings(workbook: HistoryWorkbook, preferences: FinancePreferences): { categoryNames: string[]; accountNames: string[]; cardNames: string[]; defaults: HistoryMapping } {
   const categoryNames = Array.from(new Set(workbook.rows.filter((row) => row.sheet === '支出明細').map((row) => String(row.values['類別'] ?? ''))))
-  const accountNames = Array.from(new Set(workbook.rows.filter((row) => row.sheet === '資金異動' || row.sheet === '支出明細' && row.values['支付方式'] !== '信用卡').map(accountName)))
+  const accountNames = Array.from(new Set(workbook.rows.filter((row) => row.sheet === '收入明細' || row.sheet === '資金異動' || row.sheet === '支出明細' && row.values['支付方式'] !== '信用卡').map(accountName)))
   return { categoryNames, accountNames, cardNames: workbook.rows.some((row) => row.sheet === '資金異動' && row.values['異動類型'] === 'credit_card_payment') ? ['未提供卡片（卡費繳款）'] : [], defaults: { cards: {}, categories: Object.fromEntries(categoryNames.map((name) => [name, preferences.categories.find((item) => item.active && !item.parentId && (item.name === name || categories[item.code] === name))?.id ?? ''])), accounts: Object.fromEntries(accountNames.map((name) => [name, preferences.accounts.find((item) => item.active && (item.name === name || item.id === 'cash' && name === '未提供帳戶（現金）' || item.id === 'cathay' && name === '國泰' || item.id === 'ctbc' && ['中信', '中國信託'].includes(name)))?.id ?? ''])) } }
 }
 export function prepareHistory(workbook: HistoryWorkbook, userId: string, preferences: FinancePreferences, mapping: HistoryMapping, entries: FinanceRecord[], summaries: HistorySummary[]): HistoryGroup[] {
   const groups: HistoryGroup[] = []
   const expenses = new Map<string, SourceRow>()
   const idCounts = new Map<string, number>()
-  const keyFor = (row: SourceRow): string => `${row.sheet}:${String(row.values[row.sheet === '支出明細' ? '資料ID' : row.sheet === '信用卡交易' ? '信用卡交易ID' : row.sheet === '資金異動' ? '資金異動ID' : '月份'] ?? '').trim()}`
+  const keyFor = (row: SourceRow): string => `${row.sheet}:${String(row.values[row.sheet === '支出明細' ? '資料ID' : row.sheet === '信用卡交易' ? '信用卡交易ID' : row.sheet === '資金異動' ? '資金異動ID' : row.sheet === '收入明細' ? '收入ID' : '月份'] ?? '').trim()}`
   for (const row of workbook.rows) { const key = keyFor(row); idCounts.set(key, (idCounts.get(key) ?? 0) + 1); if (row.sheet === '支出明細') expenses.set(String(row.values['資料ID']).trim(), row) }
   const linkedExpenseIds = new Set(workbook.rows.filter((row) => row.sheet === '信用卡交易').map((row) => String(row.values['對應支出ID'] ?? '').trim()).filter(Boolean))
   const item = (source: SourceRow, masterId: string, record: RecordData, localCategoryId: string | null = null): HistoryItem => {
@@ -217,18 +240,27 @@ export function prepareHistory(workbook: HistoryWorkbook, userId: string, prefer
         group.status = old?.sourceHash === summary.sourceHash ? 'duplicate' : old ? 'update' : 'new'
         group.message = '收入保留月彙總，與逐筆收入分開顯示；不推算入帳日期、不重複加總。'
       } else {
+        if (row.sheet === '收入明細') {
+          const account = preferences.accounts.find((item) => item.id === mapping.accounts[accountName(row)] && item.active)
+          if (!account || account.id === 'cash') throw new MappingRequired('收入明細請指定入帳銀行帳戶', 'account', accountName(row))
+          const receivedDate = date(row, '入帳日期') as string
+          if (month(row, '月份') !== receivedDate.slice(0, 7)) throw new Error('收入日期與月份不一致')
+          const classification = text(row, '收入分類'), recurring = text(row, '固定收入')
+          if (!['薪資', '其他收入'].includes(classification) || !['是', '否'].includes(recurring)) throw new Error('收入分類或固定收入標記不正確')
+          group.items = [item(row, text(row, '收入ID'), { entityType: 'income', payload: { receivedDate, incomeType: classification === '薪資' ? 'salary' : 'other', item: text(row, '項目'), amount: money(row, '金額') as string, accountId: account.id, isRecurring: recurring === '是', notes: text(row, '備註', true) || null } })]
+        }
         if (row.sheet === '支出明細') { group.items = [expenseItem(row, null)]; if (row.values['支付方式'] === '信用卡') group.message = '舊刷卡支出沒有對應刷卡明細；保留個人負擔，不補出交易日期或實刷金額。' }
         if (row.sheet === '信用卡交易') {
           const id = text(row, '信用卡交易ID'); const cardId = text(row, 'card_id')
           if (!['CUBE-9539', '國泰CUBE-9539'].includes(cardId)) throw new Error('第一版只支援 CUBE-9539')
-          const status = ({ 已結算: 'settled', 待結算: 'pending', 已取消: 'cancelled', settled: 'settled', pending: 'pending', cancelled: 'cancelled' } as const)[text(row, '狀態') as '已結算']
+          const status = ({ 已結算: 'settled', 待結算: 'pending', 已取消: 'cancelled', 取消: 'cancelled', settled: 'settled', pending: 'pending', cancelled: 'cancelled' } as const)[text(row, '狀態') as '已結算']
           if (!status) throw new Error('信用卡狀態不支援')
           const linked = text(row, '對應支出ID', true); const sourceExpense = expenses.get(linked)
           if (status === 'settled' ? !sourceExpense || (idCounts.get(`支出明細:${linked}`) ?? 0) !== 1 : Boolean(linked)) throw new Error('結算連結缺少唯一支出，或待結算／取消仍有支出連結')
           const cardClientId = historyId(userId, 'credit_card_transaction', id)
           const expense = sourceExpense ? expenseItem(sourceExpense, cardClientId) : null
           if (sourceExpense && sourceExpense.values['points_offset_amount'] !== null && sourceExpense.values['points_offset_amount'] !== undefined && money(sourceExpense, 'points_offset_amount') !== '0.00') throw new Error('非零點數折抵尚未支援，請先核對信用卡來源')
-          const consumptionDate = expense?.record.entityType === 'expense' ? expense.record.payload.expenseDate : date(row, '預約使用日', true)
+          const consumptionDate = expense?.record.entityType === 'expense' ? expense.record.payload.expenseDate : date(row, '實際消費日', true) ?? date(row, '預約使用日', true)
           if (!consumptionDate) throw new Error('缺少實際消費／使用日期，不能以月份或刷卡日推算')
           if (month(row, '消費月份') !== consumptionDate.slice(0, 7)) throw new Error('信用卡消費月份與支出日期不一致')
           const card = item(row, id, { entityType: 'credit_card_transaction', payload: { cardId: 'CUBE-9539', purchaseDate: date(row, '刷卡日期') as string, postingDate: date(row, '入帳日期', true), consumptionDate, statementMonth: month(row, 'statement_month', true), purpose: text(row, '預訂用途'), usageDate: date(row, '預約使用日', true), usageHours: money(row, '使用時數', true), grossAmount: money(row, '實際刷卡金額') as string, reimbursementReceivedAmount: money(row, '他人分攤/實際回補') as string, pointsOffsetAmount: '0.00', personalAmount: money(row, '個人負擔', true), status, expenseClientId: expense?.id ?? null, notes: text(row, '備註', true) || null } })
@@ -243,8 +275,8 @@ export function prepareHistory(workbook: HistoryWorkbook, userId: string, prefer
           if (month(row, '所屬月份') !== movementDate.slice(0, 7)) throw new Error('異動日期與所屬月份不一致')
           const type = z.enum(['credit_card_payment', 'family_advance_repayment']).parse(text(row, '異動類型'))
           const notes = text(row, '備註', true) || null
-          if (type === 'credit_card_payment' && mapping.cards?.['未提供卡片（卡費繳款）'] !== 'CUBE-9539') throw new MappingRequired('請指定卡費繳款的卡片；來源沒有帳單月份，保留未知', 'card', '未提供卡片（卡費繳款）')
-          group.items = [item(row, text(row, '資金異動ID'), { entityType: 'cash_movement', payload: { movementDate, accountId: account.id, movementType: type, amount: money(row, '金額') as string, balanceAfter: money(row, '異動後餘額', true, true), notes, cardId: type === 'credit_card_payment' ? 'CUBE-9539' : null, statementMonth: null } })]
+          if (type === 'credit_card_payment' && row.values.card_id !== 'CUBE-9539' && mapping.cards?.['未提供卡片（卡費繳款）'] !== 'CUBE-9539') throw new MappingRequired('請指定卡費繳款的卡片；來源沒有帳單月份，保留未知', 'card', '未提供卡片（卡費繳款）')
+          group.items = [item(row, text(row, '資金異動ID'), { entityType: 'cash_movement', payload: { movementDate, accountId: account.id, movementType: type, amount: money(row, '金額') as string, balanceAfter: money(row, '異動後餘額', true, true), notes, cardId: type === 'credit_card_payment' ? 'CUBE-9539' : null, statementMonth: month(row, 'statement_month', true) } })]
         }
         const first = group.items[0]
         group.title = recordTitle(first.record); group.date = recordDate(first.record); group.amount = recordAmount(first.record); group.sourceIds = group.items.map((i) => i.masterId)

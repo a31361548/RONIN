@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import type { FinanceRecord, FinanceExport, ReturnFile, SyncResult, RecordData } from './schema'
-import { exchangeRecordSchema, recordTitle, validateLinks } from './schema'
+import { exchangeSchema, recordTitle, validateLinks } from './schema'
 
 export function stableJson(value: unknown): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value)
@@ -13,6 +13,7 @@ export function success(result: SyncResult): boolean { return result.status === 
 
 export type ImportPreview = { conflict: boolean; rows: Array<{ id: string; title: string; status: string; message: string; changes: string[] }> }
 export function previewReturn(batch: FinanceExport, file: ReturnFile, entries: FinanceRecord[]): ImportPreview {
+  if (batch.schemaVersion !== file.schemaVersion) throw new Error('回匯與原批次的交換版本不一致')
   if (batch.datasetId !== file.datasetId || batch.batchId !== file.batchId) throw new Error('回匯檔不屬於此帳本或批次')
   if (file.masterChanges.length) throw new Error('此版尚未支援批次外的 Excel 異動，請請帳本端以原匯出批次回傳修正結果')
   if (file.results.length !== batch.records.length || new Set(file.results.map((result) => result.clientId)).size !== file.results.length) throw new Error('回匯必須完整包含該批次，且每筆紀錄只能出現一次')
@@ -28,7 +29,7 @@ export function previewReturn(batch: FinanceExport, file: ReturnFile, entries: F
     if (success(result) || result.status === 'conflict' && result.canonicalPayload !== null) {
       if (sent.operation === 'delete') throw new Error('第一版不接受正式刪除成功回執，請由帳本端回報不支援')
       if (!result.masterId || !result.masterRevision || !result.masterHash || (sent.baseMasterRevision === null && success(result) && !result.recordedDate)) throw new Error('回執缺少正式 ID、版本、雜湊或首次寫入日期')
-      data = exchangeRecordSchema.parse({ entityType: result.entityType, payload: result.canonicalPayload })
+      data = exchangeSchema(file.schemaVersion).parse({ entityType: result.entityType, payload: result.canonicalPayload })
       if (payloadHash(data.payload) !== result.masterHash) throw new Error('正式內容與 SHA-256 雜湊不一致')
       if (local.masterRevision !== null && result.masterRevision < local.masterRevision) throw new Error('回匯的正式版本比目前版本舊，拒絕套用')
       if (local.masterRevision === result.masterRevision && local.masterHash !== null && local.masterHash !== result.masterHash) throw new Error('相同正式版本的內容雜湊被改變，拒絕套用')

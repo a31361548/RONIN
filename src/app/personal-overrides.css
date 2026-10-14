@@ -17,3 +17,52 @@ body::after {
   background: #d8a69a;
   border-radius: 999px;
 }
+
+/* Finance keeps the warm palette while meeting small-text contrast. */
+[data-finance-surface] {
+  --finance-action: #ad5146;
+  --finance-action-hover: #934237;
+  --finance-secondary: #695e57;
+}
+
+[data-finance-surface] [class~="bg-[#e98a7a]"] {
+  background-color: var(--finance-action);
+}
+
+[data-finance-surface] button[class~="bg-[#e98a7a]"]:hover:not(:disabled) {
+  background-color: var(--finance-action-hover);
+}
+
+[data-finance-surface] [class~="text-[#8d7f76]"],
+[data-finance-surface] [class~="text-[#a99a91]"] {
+  color: var(--finance-secondary);
+}
+
+[data-finance-surface] [class~="text-[#668866]"] {
+  color: #4f704e;
+}
+
+[data-finance-surface] [class~="text-xs"] {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+[data-finance-surface] button {
+  min-height: 2.75rem;
+}
+
+[data-finance-surface] button:focus-visible {
+  outline: 2px solid var(--finance-action);
+  outline-offset: 3px;
+}
+
+[data-finance-surface] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="hidden"]),
+[data-finance-surface] textarea {
+  font-size: 1rem;
+}
+
+[data-finance-surface] input::placeholder,
+[data-finance-surface] textarea::placeholder {
+  color: var(--finance-secondary);
+  opacity: 1;
+}

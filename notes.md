@@ -1,5 +1,15 @@
 # 記帳實作研究
 
+## 2026-10-14｜Next.js 與正式交換
+- 官方與 npm 最新穩定版均為 16.4.0；Node >=20.9，本機 v24.14.1，React 18.2 仍在 peer 相容範圍。
+- eslint-config-next 16.4.0 需要 ESLint >=9，因此同步升級 ESLint 9 與 TypeScript ESLint 8，沿用現有 flat config，不加入無關套件升級。
+- https://nextjs.org/blog/upcoming-nextjs-security-update-october-2026 預告 10/14 三項上游修補，完成安裝時需重新核對，不能宣稱未知公告已修。
+- 「總管(3代)」確認沒有 JSON 接收 adapter 或持久網站對照／回執。正式帳本為 C:/Users/user/Desktop/資產/outputs/finance-workbook/財務投資總表.xlsx，測試 sync/validate 必須明確傳入 --workbook 與 --db。
+- 正式帳本只有月收入彙總，沒有逐筆收入；支出沒有帳戶欄。新增 cash 支援需要新版契約與持久 canonical 來源，不能藏於備註或衍生 SQLite。
+- v2 接收工具完成，副本驗證現金／收入／信用卡配對／異動及官方 sync／validate，正式 Excel／DB bytes 未變。合計 68 pass、1 skip；完整 npm run build／Webpack、TypeScript／scoped ESLint 與 localhost 桌面／手機檢查通過。成果：docs/next-finance-upgrade-notes.md、docs/finance-exchange-v2.md。
+- 重啟前 PID 改變，先停止動作重新核對，確認新父子程序 43724／39888 的本專案路徑才停止；Prisma DLL 鎖在停止本專案服務後解除，generate／build 成功並恢復 1026。
+- 官方 10/14 修補仍只有預告，prod audit 剩 6 high／4 moderate／0 critical，未宣稱完全無安全缺口。使用者自行推 GitHub main 觸發 Vercel，代理只在 localhost 檢查並回報。
+
 ## 收入核對與可讀性
 - 月收支 salary／otherIncome 僅整月金額，不能確認網站薪資同日期或捏造逐筆收入。以同月／同類／同金額提示，使用者確認包含或另一筆並保存註解。
 - sourceRefs.incomeReview 為本地註記；確認包含只排除重複匯出，保留交易／日期與網站收入，不宣稱完成正式同步。彙總 hash 或紀錄版本改變需重新核對。

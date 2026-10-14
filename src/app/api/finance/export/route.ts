@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/currentUser'
-import { type FinanceExport, exchangeRecordSchema, usesCashWallet, validateLinks } from '@/lib/finance/schema'
+import { type FinanceExport, recordDataSchema, validateLinks } from '@/lib/finance/schema'
 import { jsonValue, receiptSchema, serializeEntry, serializeExport } from '@/lib/finance/store'
 import { isHistoryRecord, historyReceiptSchema, historySummaries } from '@/lib/finance/history'
 import { incomeIncluded, incomeNeedsReview } from '@/lib/finance/income-review'
@@ -33,7 +33,7 @@ export async function POST(): Promise<NextResponse> {
       validateLinks(all)
       const summaries = historySummaries(batches.map((batch) => batch.payload))
       if (all.some((record) => record.revision > record.syncedRevision && incomeNeedsReview(record, summaries))) throw new Error('網站收入可能已包含在 Excel 月收入中，請先完成收入核對再匯出，避免重複入帳')
-      const pending = all.filter((record) => !isHistoryRecord(record) && !usesCashWallet(record) && !incomeIncluded(record) && record.revision > record.syncedRevision).sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      const pending = all.filter((record) => !isHistoryRecord(record) && !incomeIncluded(record) && record.revision > record.syncedRevision).sort((a, b) => a.createdAt.localeCompare(b.createdAt))
       // Include both halves of a settled card even when one side is unchanged.
       const ids = new Set<string>()
       for (const record of pending) {
@@ -43,8 +43,8 @@ export async function POST(): Promise<NextResponse> {
         groupIds.forEach((id) => ids.add(id))
       }
       const selected = all.filter((record) => ids.has(record.id))
-      if (!selected.length) throw new Error(all.some((record) => !isHistoryRecord(record) && usesCashWallet(record) && record.revision > record.syncedRevision) ? '現金錢包紀錄已保存在網站；Excel 交換第一版尚未支援，保留待同步，不會改成銀行帳戶匯出' : '沒有待同步紀錄')
-      const result: FinanceExport = { schemaVersion: 1, fileType: 'finance-changes', appId: 'riyue', datasetId: ledger.id, batchId: randomUUID(), exportedAt: new Date().toISOString(), timezone: 'Asia/Taipei', records: selected.map((record) => ({ ...exchangeRecordSchema.parse({ entityType: record.entityType, payload: record.payload }), changeId: record.changeId, clientId: record.id, clientRevision: record.revision, baseMasterRevision: record.masterRevision, baseMasterHash: record.masterHash, operation: record.deleted ? 'delete' : 'upsert', clientCreatedAt: record.createdAt, clientUpdatedAt: record.updatedAt, deletedAt: record.deleted ? record.updatedAt : null })) }
+      if (!selected.length) throw new Error('沒有待同步紀錄')
+      const result: FinanceExport = { schemaVersion: 2, fileType: 'finance-changes', appId: 'riyue', datasetId: ledger.id, batchId: randomUUID(), exportedAt: new Date().toISOString(), timezone: 'Asia/Taipei', records: selected.map((record) => ({ ...recordDataSchema.parse({ entityType: record.entityType, payload: record.payload }), changeId: record.changeId, clientId: record.id, clientRevision: record.revision, baseMasterRevision: record.masterRevision, baseMasterHash: record.masterHash, operation: record.deleted ? 'delete' : 'upsert', clientCreatedAt: record.createdAt, clientUpdatedAt: record.updatedAt, deletedAt: record.deleted ? record.updatedAt : null })) }
       await tx.financeBatch.create({ data: { id: result.batchId, userId: user.id, payload: jsonValue(result), receipts: { files: {}, committed: false } } })
       for (const record of selected) {
         const updated = await tx.financeEntry.updateMany({ where: { id: record.id, userId: user.id, revision: record.revision }, data: { exportedRevision: record.revision, updatedAt: new Date(record.updatedAt) } })

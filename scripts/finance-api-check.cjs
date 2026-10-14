@@ -69,7 +69,7 @@ const expense = (amount = '85.00') => ({ entityType: 'expense', payload: { expen
 const create = async (record = expense(), id = randomUUID(), revision = 0) => { const response = await route.POST(request({ records: [{ clientId: id, expectedRevision: revision, record }] })); assert.equal(response.status, 201, await response.clone().text()); return (await response.json()).records[0] }
 const exportFile = async () => { const response = await exporter.POST(); assert.equal(response.status, 200, await response.clone().text()); return response.json() }
 function receipt(batch, options = {}) {
-  return { schemaVersion: 1, fileType: 'finance-results', appId: 'riyue', timezone: 'Asia/Taipei', datasetId: batch.datasetId, batchId: batch.batchId, resultId: randomUUID(), processedAt: new Date().toISOString(), batchStatus: 'committed', results: batch.records.map((row) => ({ changeId: row.changeId, clientId: row.clientId, entityType: row.entityType, submittedClientRevision: row.clientRevision, status: 'applied', masterId: `master-${row.clientId}`, masterRevision: (row.baseMasterRevision ?? 0) + 1, masterHash: payloadHash(row.payload), recordedDate: '2026-10-12', canonicalPayload: row.payload, errors: [], warnings: [] })), masterChanges: [], monthlySummaries: [], ...options }
+  return { schemaVersion: batch.schemaVersion, fileType: 'finance-results', appId: 'riyue', timezone: 'Asia/Taipei', datasetId: batch.datasetId, batchId: batch.batchId, resultId: randomUUID(), processedAt: new Date().toISOString(), batchStatus: 'committed', results: batch.records.map((row) => ({ changeId: row.changeId, clientId: row.clientId, entityType: row.entityType, submittedClientRevision: row.clientRevision, status: 'applied', masterId: `master-${row.clientId}`, masterRevision: (row.baseMasterRevision ?? 0) + 1, masterHash: payloadHash(row.payload), recordedDate: '2026-10-12', canonicalPayload: row.payload, errors: [], warnings: [] })), masterChanges: [], monthlySummaries: [], ...options }
 }
 const apply = (file, mode = 'apply') => importer.POST(request({ mode, file }))
 const action = (entry, type) => actions.PATCH(request({ action: type, expectedRevision: entry.revision }), { params: Promise.resolve({ id: entry.id }) })
@@ -113,6 +113,25 @@ const historyPreview = async (buffer, mapping = { categories: { 餐飲: 'food' }
   assert.equal(response.status, 200, await response.clone().text()); return response.json()
 }
 const { incomeNeedsReview, incomeIncluded, incomeReviewCurrent } = load('src/lib/finance/income-review.ts')
+test('API cash export completes a real workbook adapter receipt and idempotent return', async () => {
+  reset()
+  const record=expense('90.00'); Object.assign(record.payload,{accountId:'cash',item:'另一筆現金早餐'})
+  const entry=await create(record),batch=await exportFile()
+  const book=new ExcelJS.Workbook(); await book.xlsx.load(await historyFixture())
+  book.removeWorksheet(book.getWorksheet('月收支').id)
+  const month=book.addWorksheet('月收支')
+  month.addRow(['月份','月初帳戶餘額','薪水收入','其他收入','總收入','固定支出','變動支出','投資轉出','投資轉入','總支出','月末帳戶餘額','本月淨存款','是否超支','備註','寫入日期'])
+  month.addRow(['2026-10',null,48070,0,48070,0,85,0,0,85,null,47985,'否',null,'2026-10-13'])
+  const { prepareWorkbookExchange }=require('./finance-module-loader.cjs').loadFinanceModule('src/lib/finance/receiver.ts')
+  const prepared=await prepareWorkbookExchange(Buffer.from(await book.xlsx.writeBuffer()),batch,{datasetId:batch.datasetId})
+  assert.equal(prepared.receipt.batchStatus,'committed')
+  assert.equal((await apply(prepared.receipt,'preview')).status,200)
+  const response=await apply(prepared.receipt);assert.equal(response.status,200,await response.clone().text())
+  const synced=database.entries.find(row=>row.id===entry.id)
+  assert.equal(synced.syncedRevision,entry.revision);assert.equal(synced.data.accountId,'cash');assert.match(synced.sourceRefs.masterId,/^EXP-/)
+  assert.equal((await (await apply(prepared.receipt)).json()).alreadyApplied,true)
+  assert.equal((await exporter.POST()).status,409,'no pending record remains')
+})
 const salaryRecord = (amount = '48070.00', receivedDate = '2026-10-10') => ({ entityType: 'income', payload: { incomeType: 'salary', item: '薪資', amount, receivedDate, accountId: 'cathay', isRecurring: true, notes: null } })
 async function incomeReviewFixture() {
   reset(); const buffer = await historyFixture({ movement: false }); const preview = await historyPreview(buffer)
@@ -122,6 +141,71 @@ async function incomeReviewFixture() {
   return { entry, summary: state.historySummaries[0], state }
 }
 const reviewIncome = (entry, summary, decision = 'income-included', note = '已人工確認包含在本月薪資') => actions.PATCH(request({ action: decision, expectedRevision: entry.revision, summaryHash: summary.sourceHash, note }), { params: Promise.resolve({ id: entry.id }) })
+test('exported income recovery preserves snapshots and requires complete non-application receipts', async (suite) => {
+  async function exportedIncomeFixture() {
+    reset(); const entry = await create(salaryRecord()); const batch = await exportFile()
+    const buffer = await historyFixture({ movement: false }); const preview = await historyPreview(buffer)
+    assert.equal((await historyRoute.POST(historyRequest(buffer, 'apply', preview))).status, 200)
+    const state = await (await route.GET()).json()
+    return { entry: state.records.find((row) => row.id === entry.id), batch, summary: state.historySummaries[0], state }
+  }
+  function rejection(batch, recovery = false) {
+    return receipt(batch, { batchStatus: recovery ? 'recovery_required' : 'rejected', results: batch.records.map((row) => ({ changeId: row.changeId, clientId: row.clientId, entityType: row.entityType, submittedClientRevision: row.clientRevision, status: 'not_applied', masterId: null, masterRevision: null, masterHash: null, recordedDate: null, canonicalPayload: null, errors: [{ code: recovery ? 'RECOVERY_REQUIRED' : 'NOT_APPLIED', field: null, message: '未寫入正式帳本' }], warnings: [] })) })
+  }
+  await suite.test('awaiting results remain protected and expose their original batch', async () => {
+    const { entry, batch, summary, state } = await exportedIncomeFixture()
+    assert.equal(state.batches[0].status, 'awaiting_result'); assert.ok(state.batches[0].recordIds.includes(entry.id))
+    const response = await reviewIncome(entry, summary); assert.equal(response.status, 409); assert.match((await response.json()).error, /尚未回匯/)
+    assert.deepEqual(await (await exporter.GET(new NextRequest(`http://localhost/api/finance/export?batchId=${batch.batchId}`))).json(), batch)
+  })
+  await suite.test('complete rejection unlocks review without changing or deleting the original batch', async () => {
+    const { entry, batch, summary } = await exportedIncomeFixture()
+    assert.equal((await apply(rejection(batch))).status, 200)
+    assert.equal((await (await route.GET()).json()).batches[0].status, 'rejected')
+    const response = await reviewIncome(entry, summary); assert.equal(response.status, 200, await response.clone().text())
+    const reviewed = (await response.json()).records[0]
+    assert.equal(incomeIncluded(reviewed), true); assert.equal(incomeReviewCurrent(reviewed, summary), true)
+    assert.equal(reviewed.revision, entry.revision + 1); assert.notEqual(reviewed.changeId, entry.changeId)
+    assert.deepEqual(database.batches.find((row) => row.id === batch.batchId).payload, batch)
+    assert.equal((await exporter.POST()).status, 409, 'confirmed inclusion is excluded from new exports')
+  })
+  await suite.test('a separate income gets a new version after rejection; the old batch remains immutable', async () => {
+    const { entry, batch, summary } = await exportedIncomeFixture()
+    assert.equal((await apply(rejection(batch))).status, 200)
+    assert.equal((await reviewIncome(entry, summary, 'income-separate')).status, 200)
+    const next = await exportFile(); assert.notEqual(next.batchId, batch.batchId); assert.notEqual(next.records[0].changeId, batch.records[0].changeId)
+    assert.deepEqual(database.batches.find((row) => row.id === batch.batchId).payload, batch)
+  })
+  await suite.test('recovery-required receipts cannot unlock review or a new batch', async () => {
+    const { entry, batch, summary } = await exportedIncomeFixture()
+    assert.equal((await apply(rejection(batch, true))).status, 200)
+    assert.equal((await (await route.GET()).json()).batches[0].status, 'recovery_required')
+    assert.equal((await reviewIncome(entry, summary)).status, 409); assert.equal((await exporter.POST()).status, 409)
+  })
+  await suite.test('committed income stops appearing as a local duplicate and remains protected', async () => {
+    const { entry, batch, summary } = await exportedIncomeFixture()
+    assert.equal((await apply(receipt(batch))).status, 200)
+    const state = await (await route.GET()).json(); const current = state.records.find((row) => row.id === entry.id)
+    assert.equal(incomeNeedsReview(current, state.historySummaries), false)
+    assert.equal(state.batches[0].status, 'committed'); assert.equal((await reviewIncome(current, summary)).status, 409)
+  })
+  await suite.test('an older rejected batch cannot override another unresolved export', async () => {
+    const { entry, batch, summary } = await exportedIncomeFixture()
+    assert.equal((await apply(rejection(batch))).status, 200)
+    assert.equal((await reviewIncome(entry, summary, 'income-separate')).status, 200)
+    await exportFile()
+    const current = (await (await route.GET()).json()).records.find((row) => row.id === entry.id)
+    assert.equal((await action(current, 'clear-income-review')).status, 409)
+  })
+})
+test('post-write reload failure stays separate from confirmed persistence', async () => {
+  const { refreshAfterWrite } = load('src/lib/finance/write-refresh.ts')
+  let calls = 0
+  assert.equal(await refreshAfterWrite(async () => { calls++; throw new Error('離線') }), '離線')
+  assert.equal(calls, 1)
+  assert.equal(await refreshAfterWrite(async () => { calls++ }), null)
+  assert.equal(calls, 2)
+})
 test('income review keeps monthly totals separate and prevents repeated Excel income', async (suite) => {
   await suite.test('same month, classification and amount trigger review without inventing an income date', async () => {
     const { entry, summary, state } = await incomeReviewFixture()
@@ -324,11 +408,12 @@ test('cash wallet preserves old preferences and does not change the exchange v1 
   assert.equal(recordDataSchema.safeParse({ ...wallet, payload: { ...wallet.payload, paymentMethod: 'bank_transfer' } }).success, false)
   assert.equal(templateRecord(expense()).payload.accountId, 'cash')
   const saved = await create(wallet)
-  const empty = await exporter.POST(); assert.equal(empty.status, 409); assert.match(await empty.text(), /現金錢包/)
-  assert.equal(database.entries.find((e) => e.id === saved.id).exportedRevision, 0)
+  const walletBatch = await exportFile(); assert.equal(walletBatch.schemaVersion, 2); assert.deepEqual(walletBatch.records.map((r) => r.clientId), [saved.id])
+  assert.equal(database.entries.find((e) => e.id === saved.id).exportedRevision, 1)
   const bank = await create(expense('200')); const batch = await exportFile()
-  assert.deepEqual(batch.records.map((r) => r.clientId), [bank.id]); assert.equal(database.entries.find((e) => e.id === saved.id).syncedRevision, 0)
-  const invalidReceipt = receipt(batch); invalidReceipt.results[0].canonicalPayload.accountId = 'cash'; invalidReceipt.results[0].masterHash = payloadHash(invalidReceipt.results[0].canonicalPayload)
+  assert.deepEqual(new Set(batch.records.map((r) => r.clientId)), new Set([saved.id, bank.id])); assert.equal(database.entries.find((e) => e.id === saved.id).syncedRevision, 0)
+  const legacyBatch = { ...batch, schemaVersion: 1, records: batch.records.filter((r) => r.clientId === bank.id) }; database.batches.find((r) => r.id === batch.batchId).payload = legacyBatch
+  const invalidReceipt = receipt(legacyBatch); invalidReceipt.results[0].canonicalPayload.accountId = 'cash'; invalidReceipt.results[0].masterHash = payloadHash(invalidReceipt.results[0].canonicalPayload)
   assert.equal((await apply(invalidReceipt)).status, 409, 'old exchange receipts may not silently introduce a wallet')
   assert.equal(database.entries.find((e) => e.id === bank.id).data.accountId, 'cathay')
   const buffer = await historyFixture()
